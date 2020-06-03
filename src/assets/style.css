@@ -1,0 +1,564 @@
+html, body, #root{
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.sidebar{
+  background-color: white;
+  width: 300px;
+  height: 100%;
+  box-shadow: 2px 5px 5px rgba(0,0,0,0.5);
+  position: relative;
+  z-index: 2;
+}
+
+.sidebar .control {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-top: 10px;
+  padding: 0px 10px
+}
+
+.sidebar .profile {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.sidebar .profile .profile-image {
+  width: 100px;
+  height: 100px;
+}
+
+.sidebar .profile .profile-name {
+  margin-top: 10px;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.sidebar .menu {
+  list-style-type: none;
+  margin-top: 50px;
+}
+
+.sidebar .menu .menu-item{
+  height: 50px;
+  display: flex;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
+  font-size: 18px;
+}
+
+.content {
+  height:inherit;
+  width: 100%;
+  z-index: 1;
+}
+
+.content .floating-navbar {
+  background-color: transparent;
+  width: 100%;
+  height: 100px;
+  padding-top: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+}
+
+.content .floating-navbar .button-wrapper {
+  flex: 1;
+  padding-left: 2%;
+}
+
+.content .floating-navbar .button-wrapper .back {
+  font-size:18px;
+  height: 60px;
+  width: 60px;
+  border-style: none;
+  border-radius: 50%;
+  background-color:white;
+  box-shadow: 2px 2px 2px rgba(0,0,0,0.5);
+}
+
+.main-content {
+  height:inherit;
+  width: 100%;
+  z-index: 1;
+}
+
+.main-content .navbar{
+  width: 100%;
+  height: 80px;
+  background-color: white;
+  box-shadow: 2px 5px 5px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.main-content.navbar .navbar-item {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  padding-left: 40px;
+}
+
+.main-content .navbar .navbar-item li {
+  display: inline-block;
+  padding: 0 10px;
+  font-weight: bold;
+}
+
+.content .admin .item {
+  display: inline-flex;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  padding-right: 40px;
+}
+
+.content .admin .item li {
+  font-size: 24px;
+  display: inline-block;
+  padding: 0 10px;
+  color: white;
+}
+
+.main-content .navbar .search-wrapper {
+  flex:1;
+  display: flex;
+  justify-content: center;
+}
+
+.main-content .navbar .search-wrapper .input-search {
+  font-size: 17px;
+  width: 60%;
+  height: 43px;
+  border-radius: 40px;
+  border: 1px solid #CACACA;
+  padding: 0 20px;
+}
+
+.main-content .navbar .search-wrapper .input-search:focus {
+  outline: none
+}
+
+.main-content .navbar .brand {
+  padding-right: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.main-content .navbar .brand .text {
+  font-weight: bold;
+  font-size: 25px;
+}
+
+.main-content .container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  height: 91%;
+  padding: 10px 30px;
+  overflow: scroll;
+}
+
+.main-content .container .list-book {
+  display: flex;
+}
+
+.main-content .container .list-book .card{
+  box-shadow: 2px 5px 5px rgba(0,0,0,0.5);
+  margin: 20px;
+  border-radius: 15px;
+}
+
+.main-content .container .list-book .card .card-image {
+  background-color: #888;
+  height: 150px;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+}
+
+.main-content .container .list-book .card .card-text {
+  padding: 15px;
+}
+
+.main-content .container .list-book .card .card-text .title {
+  text-align: center;
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 10 px;
+}
+
+.content .book-bg {
+  padding:0;
+  margin:0;
+  /* background-color: linear-gradient(to bottom right,#7ae5f5, #c9f6ff); */
+  /* background-image: url('../dilan-2.png'); */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  width: 100%;
+  height: 354px;
+}
+
+.content .book-cover{
+  margin-top: -200px;
+  margin-bottom: -88px;
+  width: 100%;
+  height: 288px;
+  display: flex;
+  justify-content: center;
+  border-radius: 2px;
+}
+
+.content .book-cover img {
+  box-shadow: 2px 5px 5px rgba(0,0,0,0.5);
+  margin-left: 70%;
+  width: 200px;
+  height: inherit;
+}
+
+.content .content-wrapper{
+  padding: 0;
+  margin: 0;
+  padding-top: 40px;
+  padding-bottom: 80px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.content .content-wrapper .book-wrapper {
+  width: 60%;
+  padding-left: 50px;
+  padding-right: 50px;
+  display: flex;
+  flex-direction: column;
+}
+
+.content .content-wrapper .book-wrapper .book-genre {
+  width: 100%;
+}
+
+.content .content-wrapper .book-wrapper .book-genre button {
+  background-color: #FBCC38;
+  border-style: none;
+  border-radius: 15px;
+  color: white;
+  font-size:18px;
+  width: 95px;
+  height: 30px;
+}
+
+.content .content-wrapper .book-wrapper .book-details ul {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.content .content-wrapper .book-wrapper .book-details ul li{
+  display: inline-block;
+}
+
+.content .content-wrapper .book-wrapper .book-details ul .book-title{
+  font-size: 40px;
+  font-weight: bolder;
+  text-transform: uppercase;
+}
+
+.content .content-wrapper .book-wrapper .book-details ul .book-status{
+  font-size: 24px;
+ color:greenyellow;
+}
+
+.content .content-wrapper .book-wrapper .book-release-date {
+  margin: 0;
+  padding: 0;
+  padding-top: 5px;
+  width: 100%;
+}
+
+.content .content-wrapper .book-wrapper .book-description {
+  text-align: justify;
+  text-justify: inter-word;
+  margin-top: 50px;
+  margin-bottom: 50px;
+  padding-top: 5px;
+  width: 100%;
+}
+
+.content .content-wrapper .borrow {
+  padding-left: 50px;
+  padding-right: 50px;
+  width: 20%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.content .content-wrapper .borrow .button-wrapper{
+ padding: 10px, 10px;
+}
+
+.content .content-wrapper .borrow .button-wrapper button {
+  background-color: #FBCC38;
+  border-style: none;
+  border-radius: 15px;
+  color: white;
+  font-size:36px;
+  width: 240px;
+  height: 74px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+}
+
+.content .form-wrapper {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.content .form-wrapper .library-background {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  background-image: url('bg.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  flex: 1;
+  height: 100%;
+}
+
+.darken {
+  margin: 0;
+  padding: 0;
+  background: rgba(0,0,0,0.4);
+  height: 100%;
+}
+
+.content .form-wrapper .library-background .titles {
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.content .form-wrapper .library-background .titles .quote {
+  padding-top: 40px;
+  padding-left: 35px;
+  padding-right: 35px;
+  font-size: 64px;
+  font-weight: bold;
+  color: white;
+}
+
+.quote small {
+  font-size: 12px;
+}
+
+.content .form-wrapper .library-background .titles .photo-watermark{
+  padding-left: 35px;
+  padding-right: 35px;
+  padding-bottom: 10px;
+  font-weight: bold;
+  color: white;
+}
+
+.content .form-wrapper .form {
+  position: relative;
+  display: flex;
+  padding:0;
+  margin:0;
+  width: 500px;
+  flex-direction: column;
+  height: 100%;
+}
+
+.content .form-wrapper .form .logo {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  padding: 0px 10px;
+  padding-top: 10px;
+  height: 10%;
+}
+
+.content .form-wrapper .form .logo img{
+  height: 60px;
+  width: 60px;
+}
+
+.content .form-wrapper .form .form-detail {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: 50px;
+  padding-left: 70px;
+  padding-right: 70px;
+  height: 50%;
+}
+
+.content .form-wrapper .form .form-detail .form-header {
+  margin: 0;
+  font-weight: bolder;
+  font-size: 56px;
+}
+
+.content .form-wrapper .form .form-detail .form-header-subtitle {
+  margin: 0;
+  padding-top: 8px;
+}
+
+.content .form-wrapper .form .form-detail form{
+  padding-top: 30px;
+}
+
+.content .form-wrapper .form .form-detail form .form-input{
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.content .form-wrapper .form .form-detail form .form-input ul {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.content .form-wrapper .form .form-detail form .form-input ul li{
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 4px;
+  border: 1px solid rgba(50, 50, 50, 0.25);
+  border-radius: 2px;
+}
+
+.content .form-wrapper .form .form-detail form .form-input ul li label{
+  font-size: 12px;
+  padding-left: 12px;
+  padding-top: 8px;
+  padding-bottom: 4px;
+  color:  rgba(0, 0, 0, 0.25);
+}
+
+.content .form-wrapper .form .form-detail form .form-input ul li input{
+  height: 32px;
+  font-size: 18px;
+  padding-left: 12px;
+  border-style: none;
+}
+
+.content .form-wrapper .form .form-detail form .form-input ul li input:focus{
+  outline-width: 0;
+}
+
+.content .form-wrapper .form .form-detail form .options {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.content .form-wrapper .form .form-detail form .options ul {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  list-style-type: none;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.content .form-wrapper .form .form-detail form .options ul li {
+  display: flex;
+  align-items: center;
+}
+
+.content .form-wrapper .form .form-detail form .options ul li input{
+  height: 20px;
+  width: 20px;
+}
+
+.content .form-wrapper .form .form-detail form .options ul li a{
+  text-decoration: none;
+  color: rgba(0, 0, 0, 1)
+}
+
+.content .form-wrapper .form .form-detail form .options ul li a:hover{
+  color: rgba(0, 0, 0, 0.25)
+}
+
+.content .form-wrapper .form .form-detail form .button {
+  display: flex;
+  flex-direction: row;
+  padding-top: 24px;
+  width: 100%;
+  height: 40px;
+}
+
+.content .form-wrapper .form .form-detail form .button button{
+  margin: 0;
+  margin-right: 16px;
+  padding: 0;
+  width: 90px;
+  height: 38px;
+  font-size: 16px;
+  border-style: none;
+  border-radius: 6px;
+}
+
+.content .form-wrapper .form .form-detail form .button .left {
+  background-color: rgba(0, 0, 0, 1);
+  color: white;
+}
+
+.content .form-wrapper .form .form-detail form .button .right {
+  background-color: white;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  color: rgba(0, 0, 0, 0.25);
+}
+
+.content .form-wrapper .form .terms {
+  height: 30%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding:0 56px;
+}
+
+.content .form-wrapper .form .terms p{
+  color:rgba(0, 0, 0, 0.25)
+}
+
+.content .form-wrapper .form .terms a{
+  color:rgba(0, 0, 0, 1)
+}
+
+.content .form-wrapper .form .terms a:hover{
+  color:rgba(0, 0, 0, 0.5)
+}
