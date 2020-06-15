@@ -221,11 +221,11 @@ class Details extends Component {
               </FormGroup>
               <FormGroup className='d-flex flex-row no-gutters'>
                 <Label md="3" for="release-date">Release Date</Label>
-                <Input md="9" type="date" onChange={(event) => (this.data.release_date = event.target.value)} />
+                <Input md="9" type="date" onChange={(event) => (this.data['release_date'] = event.target.value)} />
               </FormGroup>
               <FormGroup className='d-flex flex-row no-gutters'>
                 <Label md="3" for="image">Image</Label>
-                <Input md="9" type="file" accept="image/png, image/jpeg, image/jpg, image/gif" onChange={(event) => (this.data.title = event.target.files[0])} />
+                <Input md="9" type="file" accept="image/png, image/jpeg, image/jpg, image/gif" onChange={(event) => (this.data.image = event.target.files[0])} />
               </FormGroup>
             </ModalBody>
             <ModalFooter>
