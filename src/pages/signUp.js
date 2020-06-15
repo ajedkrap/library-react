@@ -9,43 +9,40 @@ import qs from 'querystring'
 import axios from 'axios'
 require('dotenv').config()
 
-class Login extends Component {
+
+class SignUp extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      username: '',
       email: '',
       password: '',
-      rememberMe: false,
       isAdmin: false,
+      data: {}
     }
   }
 
-
-  login = async (event) => {
+  signUp = async (event) => {
     event.preventDefault()
-    const user = {
+    const signUpData = {
+      username: this.state.username,
       email: this.state.email,
       password: this.state.password,
+      roles: this.state.isAdmin
     }
-    const data = qs.stringify(user)
+    const signUp = qs.stringify(signUpData)
     const { REACT_APP_URL } = process.env
-    const url = `${REACT_APP_URL}auth/login`
-    await axios.post(url, data, {
+    const url = `${REACT_APP_URL}auth/signup`
+    await axios.post(url, signUp, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       }
     }).then(response => {
       console.log(response)
-      localStorage.setItem('rememberMe', this.state.rememberMe);
-      localStorage.setItem('myData', this.state.rememberMe ? JSON.stringify(response.data.data) : '');
-      localStorage.setItem('token', JSON.stringify(response.data.data.token))
-      sessionStorage.setItem('token', JSON.stringify(response.data.data.token))
-      sessionStorage.setItem('mySessionStorage', JSON.stringify(response.data.data))
-      this.props.history.push('/home')
       swal({
         icon: 'success',
         title: `Welcome, ${response.data.message} `,
-        text: `${response.data.data.email}`
+        text: `${response.data.data.email}, ${this.state.isAdmin ? 'admin' : 'user'}`
       })
     }).catch((error) => {
       console.log(error)
@@ -55,7 +52,9 @@ class Login extends Component {
         text: `${error}`
       })
     })
+
   }
+
   render() {
     return (
       <>
@@ -72,13 +71,19 @@ class Login extends Component {
           </Col>
           <Col md={5}>
             <div className='d-flex login-form flex-column w-100 h-100'>
-              <div className='flex-grow-1 d-flex mb-3 py-5 justify-content-center align-items-center w-100 '>
-                <Form className='w-75' onSubmit={this.login} >
+              <div className='flex-grow-1 d-flex py-5  justify-content-center align-items-center w-100 mt-n5'>
+                <Form className=" w-75" onSubmit={this.signUp}>
                   <div className="mb-5 no-gutters">
-                    <h1 className='font-weight-bolder display-4'>Login</h1>
-                    <Col className='no-gutters col-7' >Welcome Back, Please Login to your account</Col>
+                    <h1 className='font-weight-bolder display-4'>Sign Up</h1>
+                    <Col className='no-gutters col-7' >Welcome Back, Please Sign Up to your account</Col>
                   </div>
                   <div className="shadow d-flex flex-column m-2 mb-4 input-form">
+                    <FormGroup>
+                      <Label className='w-100'>
+                        <div>Username</div>
+                        <Input type='text' onChange={event => this.setState({ username: event.target.value })} />
+                      </Label>
+                    </FormGroup>
                     <FormGroup>
                       <Label className='w-100'>
                         <div>Email Address</div>
@@ -88,33 +93,30 @@ class Login extends Component {
                     <FormGroup>
                       <Label className='w-100'>
                         <div>Password</div>
-                        <Input type='password' className='w-100' id="password" onChange={event => this.setState({ password: event.target.value })} />
+                        <Input type='password' onChange={event => this.setState({ password: event.target.value })} />
                       </Label>
                     </FormGroup>
                   </div>
-                  <div className='d-flex flex-row justify-content-start mt-1 mb-4'>
-                    <FormGroup check>
-                      <Label check>
-                        <Input value={!this.state.rememberMe} type='checkbox' onChange={event => this.setState({ rememberMe: event.target.value })} />
-                        <span className='text-muted'>Remember Me</span>
-                      </Label>
-                    </FormGroup>
-                  </div>
+                  <FormGroup check>
+                    <Label check className='mb-4 mt-2'>
+                      <Input type='checkbox' onClick={event => this.setState({ isAdmin: !this.state.isAdmin })} />
+                      <span className='text-muted'>as Admin</span>
+                    </Label>
+                  </FormGroup>
                   <div className='button p-0 d-flex'>
-                    <Button className="text-white border-white left text-wrap" type='submit'>Login</Button>
-                    <Link className='text-decoration-none' to='/signup'>
-                      <Button className="text-muted border-muted right text-wrap">Sign Up</Button>
+                    <Button className="text-white border-white left text-wrap" type='submit'>Sign Up</Button>
+                    <Link className='text-decoration-none' to='/'>
+                      <Button className="text-muted border-muted right text-wrap">Login</Button>
                     </Link>
                   </div>
                 </Form>
               </div>
-              <div className='d-flex flex-column mx-5 pb-3'>
+              <div className='d-flex flex-column px-5 pb-3'>
                 <div className='text-muted'>By signing up, you agree to Book’s</div>
                 <div className='text-muted'>
                   <Link className='text-decoration-none text-dark' to='/terms'>Terms and Conditions</Link>
                   &nbsp;&amp;&nbsp;
-                   <Link className='text-decoration-none text-dark' to='/privacy'>Privacy Policy</Link >
-                </div>
+                   <Link className='text-decoration-none text-dark' to='/privacy'>Privacy Policy</Link ></div>
               </div>
             </div>
           </Col>
@@ -124,4 +126,4 @@ class Login extends Component {
   }
 }
 
-export default Login
+export default SignUp

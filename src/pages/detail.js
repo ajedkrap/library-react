@@ -1,82 +1,240 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
+import {
+  Row, Col,
+  Button, Label, Input,
+  Form, FormGroup, FormText,
+  Modal, ModalHeader, ModalBody, ModalFooter,
+  Navbar, NavItem, Badge
+} from 'reactstrap'
+import { Link } from 'react-router-dom'
 
-import Books from '../assets/dilan-2.png'
+import Moment from 'react-moment'
 
-// class Edit extends Component {
-
-// }
-
-// class EditSuccess extends Component{
-
-// }
+import moment from 'moment'
+import axios from 'axios'
+import swal from 'sweetalert'
 
 class Details extends Component {
-  constructor(props){
+  constructor(props) {
     super(props)
     this.state = {
-      edit: false,
+      editBook: false,
+      deleteBook: false,
+      id: props.match.params.id,
+      title: props.location.state.title,
+      description: props.location.state.description,
+      status: props.location.state.status,
+      author: props.location.state.author.split(','),
+      genre: props.location.state.genre.split(','),
+      image: props.location.state.image,
+      release_date: props.location.state.release_date,
+      isLoading: false,
+      isAdmin: props.location.state.isAdmin,
     }
+    this.data = {
+      title: '',
+      description: '',
+      image: null,
+      genre: '',
+      author: '',
+      release_date: '',
+    }
+    this.editBookModal = this.editBookModal.bind(this)
   }
 
-  componentDidMount(){
-    const book = {Books} ? Books : ''
-    const bookBg = document.getElementsByClassName("book-bg")[0];
-    const setStyle = document.createAttribute("style");
-    if (book !== '') {
-      setStyle.value = `background-image: url('${book}')`;
-    }
-    else {
-      setStyle.value = "background-color: linear-gradient(to bottom right,#7ae5f5, #c9f6ff)"
-    }
-    bookBg.attributes.setNamedItem(setStyle)
+  editBookModal = () => {
+    this.data = {}
+    this.setState({ editBook: !this.state.editBook })
   }
 
-  render(){
-    return(
+  editBook = async (e) => {
+    e.preventDefault()
+    const data = new FormData()
+    for (const key in this.data) {
+      if (key === 'image') {
+        data.append(key, this.data[key], this.data[key].image)
+      }
+      else if (key === 'release_date') {
+        data.append(key, moment(this.data[key], 'YYYY-MM-DD').format('DD-MM-YYYY'))
+      }
+      else {
+        data.append(key, this.data[key])
+      }
+    }
+    const { REACT_APP_URL } = process.env
+    const url = `${REACT_APP_URL}books/${this.state.id}`
+    await axios.patch(url, data)
+      .then(
+        response => {
+          console.log(response)
+          this.setState({ editBook: !this.state.editBook })
+          swal({
+            icon: 'success',
+            title: 'Success',
+            text: 'Book edited'
+          })
+        }
+      ).catch((error) => {
+        console.log(error)
+        swal({
+          icon: 'error',
+          title: 'haha!',
+          text: "Error"
+        })
+      })
+  }
+
+  deleteBook = (e) => {
+    swal({
+      title: "Are you sure?",
+      text: "Once deleted, you will not be able to recover this imaginary file!",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true,
+    })
+      .then(async (willDelete) => {
+        if (willDelete) {
+          const { REACT_APP_URL } = process.env
+          const url = `${REACT_APP_URL}books/${this.state.id}`
+          await axios.delete(url)
+          this.props.history.push('/home')
+          swal("Poof! Your imaginary file has been deleted!", {
+            icon: "success",
+          })
+        } else {
+          swal("Your imaginary file is safe!")
+        }
+      })
+  }
+
+  render() {
+    return (
       <>
-        <div className="content">
-      <div className="floating-navbar">
-        <div className="button-wrapper">
-          <button className="back"> back </button>
-        </div>
-        <div className="admin">
-          <ul className="item">
-            <li>Edit</li>
-            <li>Delete</li>
-          </ul>
-        </div>
-      </div>
-      <div className="book-bg">
-        
-      </div>
-      <div className="book-cover">
-        <img src={ Books } alt="book cover"/>
-      </div>
-      <div className='content-wrapper'>
-          <div className="book-wrapper">
-            <div className="book-genre">
-            <button>Novel</button>
-            </div>
-            <div className="book-details">
-              <ul>
-                <li className="book-title">Dilan 1990</li>
-                <li className="book-status">Available</li>
-              </ul>
-            </div>
-            <div className="book-release-date">
-              30 Juni 2019
-            </div>
-            <div className="book-description">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ac diam eget est rutrum ultrices. Donec laoreet enim a massa dapibus, cursus egestas dui pulvinar. Proin sit amet accumsan lectus. Nullam auctor auctor consequat. Donec semper magna erat, sed fringilla lacus pretium eget. Cras porttitor, nibh sit amet interdum bibendum, nibh velit accumsan tellus, vel vehicula tellus leo vitae ipsum. Praesent sit amet libero sed orci ullamcorper efficitur. Pellentesque in euismod purus, sit amet ultrices tortor. Vestibulum ante dui, tempor at dui id, tincidunt euismod diam. Integer pellentesque massa nibh, ac eleifend odio malesuada sed. Phasellus orci sem, cursus nec orci ut, accumsan facilisis lacus. Nullam at elementum nibh, ac gravida felis. In sagittis rhoncus nisi tempus dignissim. Sed fringilla consequat ante vitae lobortis. Cras posuere ligula vel enim suscipit malesuada. Vivamus non nulla ut ante imperdiet euismod quis nec massa.
-            </div>
-        </div>
-        <div className="borrow">
-          <div className="button-wrapper">
-            <button>Borrow</button>
-          </div>
-        </div>
-      </div>
-    </div>
+        <Row className='d-flex flex-column mantap w-100 h-100 no-gutters'>
+          <Col className=' d-flex w-100 mh-50 book-bg no-gutters shadow' style={{ backgroundImage: `url(${this.state.image})` }}>
+            <Row className="lighten w-100 no-gutters">
+              <Navbar className='d-flex justify-content-between m-2 floating w-100'>
+                <NavItem>
+                  <Button className='border rounded-circle bg-white' color="black" onClick={() => this.props.history.goBack()}>
+                    Back
+              </Button>
+                </NavItem>
+                {this.state.isAdmin && (
+                  <NavItem className='mr-2'>
+                    <Button onClick={this.editBookModal} className='h2 ml-2'>Edit</Button>
+                    <Button onClick={this.deleteBook} className='h2 ml-2'>Delete</Button>
+                  </NavItem>
+                )}
+                {!this.state.isAdmin && (
+                  <div></div>
+                )}
+              </Navbar>
+            </Row>
+          </Col>
+          <Col className="d-flex w-100 justify-content-end cover no-gutters">
+            <img className='shadow h-100' src={this.state.image} alt="cover" />
+          </Col>
+          <Col className='d-flex w-100 no-gutters '>
+            <Col className='d-flex flex-column p-4' >
+              <div className='d-flex justify-content-between' >
+                <div className='d-flex flex-row justify-content-center text-center mb-2'>
+                  {this.state.genre.map(genre => (
+                    <Badge className="badge badge-pill mr-2 badge-warning text-white">
+                      <div className="h5 p-1">
+                        {genre}
+                      </div>
+                    </Badge>
+                  ))}
+                </div>
+                <div className="text-success h5"> {this.state.status} </div>
+              </div>
+              <div className="h1"> {this.state.title} </div>
+              <div className="h4 mb-3">
+                <Moment format="DD MMMM YYYY">
+                  {this.state.release_date}
+                </Moment>
+              </div>
+              <div className='d-flex  mt-3'>
+                {this.state.author.map((author, index, array) => {
+                  return index === array.length - 1 ? <div className=" mr-1 h6 author"> {author} </div> : <div className=" mr-1 h6 author"> {author} |</div>
+                })}
+              </div>
+
+              <div className=''> {this.state.description} </div>
+            </Col>
+            {!this.state.isAdmin && (<Col className='d-flex flex-column py-5 justify-content-end align-items-center'>
+              <Link to={{
+                pathname: '/loan',
+                state: {
+                  book: {
+                    id: this.state.id,
+                    title: this.state.title,
+                    description: this.state.description,
+                    image: this.state.image,
+                    genre: this.state.genre,
+                    author: this.state.author,
+                    release_date: this.state.release_date,
+                    status: this.state.status
+                  }
+                }
+              }}>
+                <Button className='border-0 w-100 bg-warning text-white'>
+                  <h3 className='p-2'>Borrow</h3>
+                </Button>
+              </Link>
+            </Col>)}
+          </Col>
+        </Row>
+
+        <Modal isOpen={this.state.editBook}>
+          <ModalHeader>
+            <p>Edit Book</p>
+            <Button color="secondary" onClick={() => this.setState({ editBook: !this.state.editBook })}>Cancel</Button>
+          </ModalHeader>
+          <Form  >
+            <ModalBody>
+              <FormGroup className='d-flex flex-row no-gutters'>
+                <Label md="3" for="title">Title</Label>
+                <Input md="9" type="text" onChange={(event) => (this.data.title = event.target.value)} />
+              </FormGroup>
+              <FormGroup className='d-flex flex-row no-gutters'>
+                <Label md="3" for="description">Description</Label>
+                <Input md='9' type="text" onChange={(event) => (this.data.description = event.target.value)} />
+              </FormGroup>
+              <FormGroup className='d-flex flex-row no-gutters'>
+                <Label md="3" for="genre">Genre</Label>
+                <div md="9" className='d-flex flex-column'>
+                  <Input type="text" onChange={(event) => (this.data.genre = event.target.value)} />
+                  <FormText>
+                    If multiple, separated by comma. (e.g. Action, Fantasy, Novel)
+                  </FormText>
+                </div>
+              </FormGroup>
+              <FormGroup className='d-flex flex-row no-gutters'>
+                <Label md="3" for="author">Author</Label>
+                <div md="9" className='d-flex flex-column'>
+                  <Input type="text" onChange={(event) => (this.data.author = event.target.value)} />
+                  <FormText>
+                    If multiple, separated by comma. (e.g. jk rowling, pidi baiq, raditya dika)
+                  </FormText>
+                </div>
+              </FormGroup>
+              <FormGroup className='d-flex flex-row no-gutters'>
+                <Label md="3" for="release-date">Release Date</Label>
+                <Input md="9" type="date" onChange={(event) => (this.data.release_date = event.target.value)} />
+              </FormGroup>
+              <FormGroup className='d-flex flex-row no-gutters'>
+                <Label md="3" for="image">Image</Label>
+                <Input md="9" type="file" accept="image/png, image/jpeg, image/jpg, image/gif" onChange={(event) => (this.data.title = event.target.files[0])} />
+              </FormGroup>
+            </ModalBody>
+            <ModalFooter>
+
+              <Button onClick={this.editBook} type='submit' color="secondary">Submit</Button>
+
+            </ModalFooter>
+          </Form>
+        </Modal>
       </>
     )
   }
