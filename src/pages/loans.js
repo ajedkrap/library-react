@@ -26,8 +26,6 @@ class Loan extends Component {
       isLoading: false,
       isSelect: true,
       isLoan: false,
-      books: [],
-      loans: []
     }
 
     this.book = {
@@ -49,6 +47,7 @@ class Loan extends Component {
   setLoans = (e) => {
     e.preventDefault()
     this.setState({ isLoading: !this.state.isLoading })
+
     swal({
       title: "Ready to loan?",
       text: "Once you loan, you will not be able to select more books!",
@@ -58,17 +57,19 @@ class Loan extends Component {
     })
       .then((willDelete) => {
         if (willDelete) {
-          let loans = this.state.loans.length
+          const loans = JSON.parse(localStorage.getItem('loans'))
+          const books = JSON.parse(localStorage.getItem('books'))
           const loan = {
-            id: loans++,
+            id: loans.length++,
             username: this.state.userData.username,
-            amountOfBook: this.state.books.length,
+            amountOfBook: books.length,
             loaned_date: moment().format('DD-MM-YYYY'),
-            due_date: moment().add(this.amountOfBook, 'd').format('DD-MM-YYYY'),
+            due_date: moment().add(books.length, 'd').format('DD-MM-YYYY'),
             return_date: '',
             status: 'On Loan'
           }
-          this.state.loans.push(loan)
+          loans.push(loan)
+          localStorage.setItem('loans', JSON.stringify(loans))
           swal({
             icon: "success",
             title: 'Loan Created!',
@@ -104,8 +105,10 @@ class Loan extends Component {
           title: 'Book Returned!',
           text: `yet, we'll check the whether the loan is overdue`
         })
-        const result = this.state.loans.filter(obj => {
-          return obj.username === this.state.userData.username
+        const { username } = this.state.userData
+        const loans = JSON.parse(localStorage.getItem('loans'))
+        const result = loans.filter(obj => {
+          return obj.username === username
         })
         result.return_date = moment().format('DD-MM-YYYY')
         if (result.return_date > result.due_date) {
@@ -123,8 +126,8 @@ class Loan extends Component {
           })
           swal('make sure to return the book on due in future, OK? :)')
         }
-        this.loans[result.id--] = result
-        this.setState({ books: [] })
+        loans[result.id--] = result
+        localStorage.setItem('books', '[]')
         swal('Don\'t forget to keep reading book!!')
         this.setState({ isLoading: !this.state.isLoading, isLoan: !this.state.isLoan, isSelect: !this.state.isSelect })
       } else {
@@ -133,8 +136,6 @@ class Loan extends Component {
       }
     })
   }
-
-
 
   showSidebar = (state) => {
     this.setState(state)
@@ -150,27 +151,41 @@ class Loan extends Component {
   }
 
   componentWillMount() {
-    console.log(this.state.books)
-    if (this.props.location.state && this.state.loans.length > 1) {
-      this.book = this.props.location.state.book
-      this.state.books.push(this.book)
+    if (localStorage.getItem('books') === null) {
+      localStorage.setItem('books', '[]')
     }
+    if (localStorage.getItem('loans') === null) {
+      localStorage.setItem('loans', '[]')
+    }
+    if (this.props.location.state) {
+      const books = JSON.parse(localStorage.getItem('books'))
+      books.push(this.props.location.state.book)
+      localStorage.setItem('books', JSON.stringify(books))
 
+    }
+  }
+
+  componentDidUpdate() {
+    if (localStorage.getItem('books') === null) {
+      localStorage.setItem('books', '[]')
+    }
+    if (localStorage.getItem('loans') === null) {
+      localStorage.setItem('loans', '[]')
+    }
   }
 
   componentDidMount() {
-    this.setState({ isloading: true })
-    delete this.props.location.state;
-    console.log(this.state.books)
-    this.setState({ isloading: false })
+    delete this.props.location.state
   }
 
-  render() {
 
+  render() {
+    const books = JSON.parse(localStorage.getItem('books'))
+    const loans = JSON.parse(localStorage.getItem('loans'))
     return (
       <>
         <Row className='d-flex flex-row mantap w-100 h-100 no-gutters'>
-          {this.state.showSidebar && <SideBar getUser={this.state.userData} isAdmin={this.state.isAdmin} hideSidebar={this.showSidebar.bind(this)} addBookModal={this.addBookModal.bind(this)} logout={this.logout.bind(this)} />}
+          {this.state.showSidebar && <SideBar getUser={this.state.userData} isAdmin={this.state.isAdmin} showBook={() => this.props.history.push('/home')} hideSidebar={this.showSidebar.bind(this)} addBookModal={this.addBookModal.bind(this)} logout={this.logout.bind(this)} />}
           <Col className='content d-flex flex-grow-1 flex-column' >
             <Col className='navbar relative d-flex w-100 bg-white shadow align-items-center pl-3 px-4' >
               {!this.state.showSidebar && (<div className="d-flex justify-content-end my-3 px-3">
@@ -195,7 +210,7 @@ class Loan extends Component {
                   <Row className='d-flex w-100 justify-content-center h-100'>
                     <h3>Loaned Book</h3>
                     <div className='w-100' />
-                    {this.state.books.length !== 0 && (
+                    {books.length !== 0 && (
                       <Col className='w-100'>
                         <Table striped>
                           <thead>
@@ -208,7 +223,7 @@ class Loan extends Component {
                             </tr>
                           </thead>
                           <tbody>
-                            {this.state.books.map((book, index) => (
+                            {books.map((book, index) => (
                               <tr>
                                 <th scope='row'>{index}</th>
                                 <td>{book.id}</td>
@@ -224,7 +239,7 @@ class Loan extends Component {
                           {this.state.isLoan && (<Button onClick={this.return}>Return</Button>)}
                         </Col>
                       </Col>)}
-                    {this.state.books.length === 0 && (
+                    {books.length === 0 && (
                       <Col className='w-100'>
                         <p className='display-4 text-center'>No Data</p>
                       </Col>
@@ -234,8 +249,9 @@ class Loan extends Component {
                 {!this.state.isLoading && this.state.isAdmin && (
                   <Row className='d-flex w-100 justify-content-center h-100'>
                     <h3>Loan list</h3>
+                    <div className='w-100' />
                     <Col className='w-100'>
-                      {this.loans.length !== 0 && (
+                      {loans.length !== 0 && (
                         <Col className='w-100'>
                           <Table striped>
                             <thead>
@@ -250,7 +266,7 @@ class Loan extends Component {
                               </tr>
                             </thead>
                             <tbody>
-                              {this.loans.map(loan => (
+                              {loans.map(loan => (
                                 <tr>
                                   <th scope='row'>{loan.id}</th>
                                   <td>{loan.id}</td>
@@ -265,7 +281,7 @@ class Loan extends Component {
                             </tbody>
                           </Table>
                         </Col>)}
-                      {this.loans.length === 0 && (
+                      {loans.length === 0 && (
                         <Col className='w-100'>
                           <p className='display-4 text-center'>No Data</p>
                         </Col>

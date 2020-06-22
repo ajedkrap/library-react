@@ -32,6 +32,22 @@ class Books extends Component {
     this.setState({ dropdownOpen: !this.state.dropdownOpen })
   }
 
+  fetchDataByGenre = async (genre) => {
+    this.setState({ isLoading: true })
+    const token = JSON.parse(sessionStorage.getItem('token')).token
+    const { REACT_APP_URL } = process.env
+    const url = `${REACT_APP_URL}books/${genre}`
+    const results = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    const { data, options } = results.data
+    this.setState({ data, options, isLoading: false })
+    this.props.sendGenreUrl(`home/${genre}`)
+
+  }
+
   fetchData = async (params) => {
     this.setState({ isLoading: true })
     const param = `${qs.stringify(params)}`
@@ -69,8 +85,8 @@ class Books extends Component {
           </div>
         }
         {!this.state.isLoading && (
-          <Row className="d-flex">
-            <div className='d-flex w-100 justify-content-between mb-3'>
+          <Row >
+            <div className='d-flex w-100 justify-content-between mx-3'>
               <h3>List Book</h3>
               <div className='mr-4 pr-4'>
                 <ButtonDropdown direction='left' isOpen={this.state.dropdownOpen} toggle={this.dropdownOpen}>
@@ -87,7 +103,7 @@ class Books extends Component {
             <div className='w-100'></div>
             {this.state.data.length !== 0 &&
               this.state.data.map((book) => (
-                <Col lg='3' md='3' sm='6' xs='6' className=" pt-3 w-auto">
+                <Col lg='3' md='4' sm='6' xs='6' className=" pt-3 w-auto">
                   <CardDeck>
                     <Card className="shadow">
                       <Link className="text-decoration-none text-color-black" to={{

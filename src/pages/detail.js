@@ -100,7 +100,7 @@ class Details extends Component {
         if (willDelete) {
           const { REACT_APP_URL } = process.env
           const token = JSON.parse(sessionStorage.getItem('token')).token
-          const url = `${REACT_APP_URL}books/${this.state.id}`
+          const url = `${REACT_APP_URL}books/${this.book.id}`
           await axios.delete(url, {
             headers: {
               Authorization: `Bearer ${token}`

@@ -54,6 +54,15 @@ class Login extends Component {
       })
     })
   }
+
+
+  componentWillMount() {
+    const rememberMe = JSON.parse(localStorage.getItem('rememberMe'))
+    if (rememberMe) {
+      this.props.history.push('/home')
+    }
+  }
+
   render() {
     return (
       <>

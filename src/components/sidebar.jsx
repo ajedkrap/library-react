@@ -39,8 +39,9 @@ class Sidebar extends Component {
 
   logout = (e) => {
     e.preventDefault()
-    localStorage.clear()
-    sessionStorage.clear()
+    localStorage.removeItem('token')
+    localStorage.removeItem('rememberMe')
+    sessionStorage.removeItem('token')
     this.props.logout('/')
   }
 
@@ -63,21 +64,19 @@ class Sidebar extends Component {
           <Col className='h-50'>
             {this.state.isAdmin && (<div className=' mt-3 rounded w-100 bg-white px-2' onClick={this.addBookModal}>+ Add Book</div>)}
             <ul className="list-group pt-4 px-2">
-              <Link to='/home'>
-                <li className="list-group-item" onClick={this.showBook}>Explore</li>
-              </Link>
+              <li className="list-group-item" onClick={() => this.props.showBook()}>Explore</li>
               {!this.state.isAdmin && (
                 <Link to={{
                   pathname: '/loan'
                 }}>
-                  <li className="list-group-item" onClick={this.showLoans}>Loans</li>
+                  <li className="list-group-item" >Loans</li>
                 </Link>
               )}
               {this.state.isAdmin && (
                 <Link to={{
                   pathname: '/loan'
                 }}>
-                  <li className="list-group-item" onClick={this.showLoans}>Loan List</li>
+                  <li className="list-group-item" >Loan List</li>
                 </Link>
               )}
               <li className="list-group-item text-danger" onClick={this.logout.bind(this)}>Logout</li>

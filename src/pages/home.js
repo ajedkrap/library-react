@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import {
   Row, Col, Container,
-  Button, Label, Input,
+  Button, Label, Input, Badge,
   Form, FormGroup, FormText,
   Modal, ModalHeader, ModalBody, ModalFooter
 } from 'reactstrap'
@@ -39,7 +39,8 @@ class Home extends Component {
       author: '',
       release_date: '',
       userData,
-      data: []
+      data: [],
+      genreData: []
     }
     this.books = React.createRef()
   }
@@ -111,6 +112,10 @@ class Home extends Component {
     }
   }
 
+  fetchSearchbyGenre = (genre) => {
+    this.books.current.fetchDataByGenre(genre)
+  }
+
   async componentDidMount() {
     const token = JSON.parse(sessionStorage.getItem('token')).token
     const { REACT_APP_URL } = process.env
@@ -122,6 +127,13 @@ class Home extends Component {
     })
     const { data } = results.data
     this.setState({ data })
+    const genreUrl = `${REACT_APP_URL}genre`
+    const genreResults = await axios.get(genreUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    this.setState({ genreData: genreResults.data.data })
   }
 
   render() {
@@ -129,7 +141,7 @@ class Home extends Component {
     return (
       <>
         <Row className='d-flex mantap flex-row w-100 h-100 no-gutters'>
-          {this.state.showSidebar && <SideBar getUser={this.state.userData} isAdmin={this.state.isAdmin} book={this.showBook.bind(this)} loan={this.showLoans.bind(this)} hideSidebar={this.showSidebar.bind(this)} addBookModal={this.addBookModal.bind(this)} logout={this.logout.bind(this)} />}
+          {this.state.showSidebar && <SideBar getUser={this.state.userData} isAdmin={this.state.isAdmin} showBook={() => this.props.history.push('/home')} loan={this.showLoans.bind(this)} hideSidebar={this.showSidebar.bind(this)} addBookModal={this.addBookModal.bind(this)} logout={this.logout.bind(this)} />}
           <Col className='content d-flex flex-grow-1 flex-column' >
             <Col className='navbar relative d-flex w-100 bg-white justify-content-between shadow align-items-center pl-3 px-4' >
               {!this.state.showSidebar ? <div className="d-flex justify-content-end my-3 px-5">
@@ -155,12 +167,19 @@ class Home extends Component {
                     }
                   }}>
                   {this.state.data.map(books => (
-                    <img className='p-0 my-4 shadow' src={books.image} alt={books.title} />
+                    <img className='p-0 my-4 shadow-lg' src={books.image} alt={books.title} />
                   ))}
                 </Carousel>
               </Container>
               <Container fluid={true}>
-                <Books ref={this.books} isAdmin={this.state.isAdmin} sendUrl={(param) => (this.props.history.push(param))} sendParams={params} />
+
+                <Col className='h2 p-5 text-center'>
+                  {this.state.genreData.map(genres => (
+                    <Badge className='mx-2 shadow' onClick={() => this.fetchSearchbyGenre(genres.genre)} color="primary" pill>{genres.genre}</Badge>
+                  ))}
+                </Col>
+
+                <Books ref={this.books} isAdmin={this.state.isAdmin} sendUrl={(param) => (this.props.history.push(param))} sendGenreUrl={(genre) => (this.props.history.push(genre))} sendParams={params} />
               </Container>
             </Col>
           </Col>
