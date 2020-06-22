@@ -20,16 +20,17 @@ class Details extends Component {
     this.state = {
       editBook: false,
       deleteBook: false,
-      id: props.match.params.id,
-      title: props.location.state.title,
-      description: props.location.state.description,
-      status: props.location.state.status,
-      author: props.location.state.author.split(','),
-      genre: props.location.state.genre.split(','),
-      image: props.location.state.image,
-      release_date: props.location.state.release_date,
       isLoading: false,
       isAdmin: props.location.state.isAdmin,
+    }
+    this.book = {
+      id: '',
+      title: '',
+      description: '',
+      image: null,
+      genre: '',
+      author: '',
+      release_date: '',
     }
     this.data = {
       title: '',
@@ -49,6 +50,7 @@ class Details extends Component {
 
   editBook = async (e) => {
     e.preventDefault()
+    const token = JSON.parse(sessionStorage.getItem('token')).token
     const data = new FormData()
     for (const key in this.data) {
       if (key === 'image') {
@@ -62,11 +64,14 @@ class Details extends Component {
       }
     }
     const { REACT_APP_URL } = process.env
-    const url = `${REACT_APP_URL}books/${this.state.id}`
-    await axios.patch(url, data)
+    const url = `${REACT_APP_URL}books/${this.books.id}`
+    await axios.patch(url, data, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
       .then(
         response => {
-          console.log(response)
           this.setState({ editBook: !this.state.editBook })
           swal({
             icon: 'success',
@@ -75,7 +80,6 @@ class Details extends Component {
           })
         }
       ).catch((error) => {
-        console.log(error)
         swal({
           icon: 'error',
           title: 'haha!',
@@ -95,8 +99,13 @@ class Details extends Component {
       .then(async (willDelete) => {
         if (willDelete) {
           const { REACT_APP_URL } = process.env
+          const token = JSON.parse(sessionStorage.getItem('token')).token
           const url = `${REACT_APP_URL}books/${this.state.id}`
-          await axios.delete(url)
+          await axios.delete(url, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          })
           this.props.history.push('/home')
           swal("Poof! Your imaginary file has been deleted!", {
             icon: "success",
@@ -108,10 +117,13 @@ class Details extends Component {
   }
 
   render() {
+    this.book = this.props.location.state
+    const genre = this.book.genre.split(',')
+    const author = this.book.author.split(',')
     return (
       <>
         <Row className='d-flex flex-column mantap w-100 h-100 no-gutters'>
-          <Col className=' d-flex w-100 mh-50 book-bg no-gutters shadow' style={{ backgroundImage: `url(${this.state.image})` }}>
+          <Col className=' d-flex w-100 mh-50 book-bg no-gutters shadow' style={{ backgroundImage: `url(${this.book.image})` }}>
             <Row className="lighten w-100 no-gutters">
               <Navbar className='d-flex justify-content-between m-2 floating w-100'>
                 <NavItem>
@@ -132,13 +144,13 @@ class Details extends Component {
             </Row>
           </Col>
           <Col className="d-flex w-100 justify-content-end cover no-gutters">
-            <img className='shadow h-100' src={this.state.image} alt="cover" />
+            <img className='shadow h-100' src={this.book.image} alt="cover" />
           </Col>
           <Col className='d-flex w-100 no-gutters '>
             <Col className='d-flex flex-column p-4' >
               <div className='d-flex justify-content-between' >
                 <div className='d-flex flex-row justify-content-center text-center mb-2'>
-                  {this.state.genre.map(genre => (
+                  {genre.map(genre => (
                     <Badge className="badge badge-pill mr-2 badge-warning text-white">
                       <div className="h5 p-1">
                         {genre}
@@ -146,35 +158,35 @@ class Details extends Component {
                     </Badge>
                   ))}
                 </div>
-                <div className="text-success h5"> {this.state.status} </div>
+                <div className="text-success h5"> {this.book.status} </div>
               </div>
-              <div className="h1"> {this.state.title} </div>
+              <div className="h1"> {this.book.title} </div>
               <div className="h4 mb-3">
                 <Moment format="DD MMMM YYYY">
-                  {this.state.release_date}
+                  {this.book.release_date}
                 </Moment>
               </div>
               <div className='d-flex  mt-3'>
-                {this.state.author.map((author, index, array) => {
+                {author.map((author, index, array) => {
                   return index === array.length - 1 ? <div className=" mr-1 h6 author"> {author} </div> : <div className=" mr-1 h6 author"> {author} |</div>
                 })}
               </div>
 
-              <div className=''> {this.state.description} </div>
+              <div className=''> {this.book.description} </div>
             </Col>
             {!this.state.isAdmin && (<Col className='d-flex flex-column py-5 justify-content-end align-items-center'>
               <Link to={{
                 pathname: '/loan',
                 state: {
                   book: {
-                    id: this.state.id,
-                    title: this.state.title,
-                    description: this.state.description,
-                    image: this.state.image,
-                    genre: this.state.genre,
-                    author: this.state.author,
-                    release_date: this.state.release_date,
-                    status: this.state.status
+                    id: this.book.id,
+                    title: this.book.title,
+                    description: this.book.description,
+                    image: this.book.image,
+                    genre: this.book.genre,
+                    author: this.book.author,
+                    release_date: this.book.release_date,
+                    status: this.book.status
                   }
                 }
               }}>

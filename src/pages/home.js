@@ -24,16 +24,7 @@ import FormData from 'form-data'
 class Home extends Component {
   constructor(props) {
     super(props)
-    this.checkToken = () => {
-      if (!localStorage.getItem('token')) {
-        alert('You must login first')
-        props.history.push('/')
-      }
-      else {
-        props.history.push('/home')
-      }
-    }
-    const userData = JSON.parse(localStorage.getItem('myData'))
+    const userData = JSON.parse(sessionStorage.getItem('token'))
     this.state = {
       isAdmin: this.getRoles(userData.roles),
       showSidebar: false,
@@ -54,7 +45,7 @@ class Home extends Component {
   }
 
   getRoles = (_roles) => {
-    const roles = _roles === 1 ? true : false
+    const roles = _roles === 'admin' ? true : false
     return roles
   }
 
@@ -121,8 +112,14 @@ class Home extends Component {
   }
 
   async componentDidMount() {
-    this.checkToken()
-    const results = await axios.get('http://localhost:8080/books')
+    const token = JSON.parse(sessionStorage.getItem('token')).token
+    const { REACT_APP_URL } = process.env
+    const url = `${REACT_APP_URL}books`
+    const results = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
     const { data } = results.data
     this.setState({ data })
   }
@@ -148,9 +145,17 @@ class Home extends Component {
             </Col>
             <Col className=" p-4 " >
               <Container className='h-25 w-100 mb-3' fluid={true}>
-                <Carousel autoPlay={5000} animationSpeed={4000} infinite arrows centered slidesPerPage={2}>
+                <Carousel autoPlay={5000} animationSpeed={4000} infinite arrows centered slidesPerPage={2}
+                  breakpoints={{
+                    768: {
+                      slidesPerPage: 1,
+                    },
+                    1024: {
+                      slidesPerPage: 1,
+                    }
+                  }}>
                   {this.state.data.map(books => (
-                    <img src={books.image} alt={books.title} />
+                    <img className='p-0 my-4 shadow' src={books.image} alt={books.title} />
                   ))}
                 </Carousel>
               </Container>

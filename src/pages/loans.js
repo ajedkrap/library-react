@@ -13,10 +13,13 @@ import SideBar from '../components/sidebar.jsx'
 import moment from 'moment'
 import swal from 'sweetalert'
 
+
+
 class Loan extends Component {
+
   constructor(props) {
     super(props)
-    const userData = JSON.parse(localStorage.getItem('myData'))
+    const userData = JSON.parse(sessionStorage.getItem('token'))
     this.state = {
       userData,
       isAdmin: this.getRoles(userData.roles),
@@ -24,28 +27,22 @@ class Loan extends Component {
       isSelect: true,
       isLoan: false,
       books: [],
-      loans: [],
-      id: props.location.state.id,
-      title: props.location.state.title,
-      description: props.location.state.description,
-      image: props.location.state.image,
-      genre: props.location.state.genre,
-      author: props.location.state.author,
-      release_date: props.location.state.release_date,
-      book: {
-        id: '',
-        title: '',
-        description: '',
-        image: null,
-        genre: '',
-        author: '',
-        release_date: ''
-      }
+      loans: []
+    }
+
+    this.book = {
+      id: '',
+      title: '',
+      description: '',
+      image: null,
+      genre: '',
+      author: '',
+      release_date: ''
     }
   }
 
   getRoles = (_roles) => {
-    const roles = _roles === 1 ? true : false
+    const roles = _roles === 'admin' ? true : false
     return roles
   }
 
@@ -61,8 +58,9 @@ class Loan extends Component {
     })
       .then((willDelete) => {
         if (willDelete) {
+          let loans = this.state.loans.length
           const loan = {
-            id: this.state.loans.length++,
+            id: loans++,
             username: this.state.userData.username,
             amountOfBook: this.state.books.length,
             loaned_date: moment().format('DD-MM-YYYY'),
@@ -125,8 +123,8 @@ class Loan extends Component {
           })
           swal('make sure to return the book on due in future, OK? :)')
         }
-        this.state.loans[result.id--] = result
-        this.state.books = []
+        this.loans[result.id--] = result
+        this.setState({ books: [] })
         swal('Don\'t forget to keep reading book!!')
         this.setState({ isLoading: !this.state.isLoading, isLoan: !this.state.isLoan, isSelect: !this.state.isSelect })
       } else {
@@ -137,6 +135,7 @@ class Loan extends Component {
   }
 
 
+
   showSidebar = (state) => {
     this.setState(state)
   }
@@ -145,29 +144,33 @@ class Loan extends Component {
     this.setState(state)
   }
 
+  logout = (uri) => {
+    swal("You've Logged Out")
+    this.props.history.push(uri)
+  }
+
+  componentWillMount() {
+    console.log(this.state.books)
+    if (this.props.location.state && this.state.loans.length > 1) {
+      this.book = this.props.location.state.book
+      this.state.books.push(this.book)
+    }
+
+  }
+
   componentDidMount() {
     this.setState({ isloading: true })
-    this.setState({
-      book: {
-        id: this.state.id,
-        title: this.state.title,
-        description: this.state.description,
-        genre: this.state.genre,
-        author: this.state.author,
-        release_date: this.state.release_date,
-      }
-    })
-    if (this.state.isSelect) {
-      this.state.books.push(this.state.book)
-    }
+    delete this.props.location.state;
+    console.log(this.state.books)
     this.setState({ isloading: false })
   }
 
   render() {
+
     return (
       <>
         <Row className='d-flex flex-row mantap w-100 h-100 no-gutters'>
-          {this.state.showSidebar && <SideBar getUser={this.state.userData} isAdmin={this.state.isAdmin} hideSidebar={this.showSidebar.bind(this)} addBookModal={this.addBookModal.bind(this)} />}
+          {this.state.showSidebar && <SideBar getUser={this.state.userData} isAdmin={this.state.isAdmin} hideSidebar={this.showSidebar.bind(this)} addBookModal={this.addBookModal.bind(this)} logout={this.logout.bind(this)} />}
           <Col className='content d-flex flex-grow-1 flex-column' >
             <Col className='navbar relative d-flex w-100 bg-white shadow align-items-center pl-3 px-4' >
               {!this.state.showSidebar && (<div className="d-flex justify-content-end my-3 px-3">
@@ -205,13 +208,13 @@ class Loan extends Component {
                             </tr>
                           </thead>
                           <tbody>
-                            {this.state.books.map((books, index) => (
+                            {this.state.books.map((book, index) => (
                               <tr>
                                 <th scope='row'>{index}</th>
-                                <td>{books.id}</td>
-                                <td>{books.title}</td>
-                                <td>{books.author}</td>
-                                <td>{books.status}</td>
+                                <td>{book.id}</td>
+                                <td>{book.title}</td>
+                                <td>{book.author}</td>
+                                <td>{book.status}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -232,7 +235,7 @@ class Loan extends Component {
                   <Row className='d-flex w-100 justify-content-center h-100'>
                     <h3>Loan list</h3>
                     <Col className='w-100'>
-                      {this.state.loans.length !== 0 && (
+                      {this.loans.length !== 0 && (
                         <Col className='w-100'>
                           <Table striped>
                             <thead>
@@ -247,7 +250,7 @@ class Loan extends Component {
                               </tr>
                             </thead>
                             <tbody>
-                              {this.state.loans.map(loan => (
+                              {this.loans.map(loan => (
                                 <tr>
                                   <th scope='row'>{loan.id}</th>
                                   <td>{loan.id}</td>
@@ -262,7 +265,7 @@ class Loan extends Component {
                             </tbody>
                           </Table>
                         </Col>)}
-                      {this.state.loans.length === 0 && (
+                      {this.loans.length === 0 && (
                         <Col className='w-100'>
                           <p className='display-4 text-center'>No Data</p>
                         </Col>

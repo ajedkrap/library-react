@@ -37,10 +37,8 @@ class Login extends Component {
     }).then(response => {
       console.log(response)
       localStorage.setItem('rememberMe', this.state.rememberMe);
-      localStorage.setItem('myData', this.state.rememberMe ? JSON.stringify(response.data.data) : '');
-      localStorage.setItem('token', JSON.stringify(response.data.data.token))
-      sessionStorage.setItem('token', JSON.stringify(response.data.data.token))
-      sessionStorage.setItem('mySessionStorage', JSON.stringify(response.data.data))
+      localStorage.setItem('token', this.state.rememberMe ? JSON.stringify(response.data.data) : '');
+      sessionStorage.setItem('token', JSON.stringify(response.data.data))
       this.props.history.push('/home')
       swal({
         icon: 'success',

@@ -35,9 +35,14 @@ class Books extends Component {
   fetchData = async (params) => {
     this.setState({ isLoading: true })
     const param = `${qs.stringify(params)}`
+    const token = JSON.parse(sessionStorage.getItem('token')).token
     const { REACT_APP_URL } = process.env
     const url = `${REACT_APP_URL}books?${param}`
-    const results = await axios.get(url)
+    const results = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
     const { data, options } = results.data
     this.setState({ data, options, isLoading: false })
     if (params) {
@@ -82,7 +87,7 @@ class Books extends Component {
             <div className='w-100'></div>
             {this.state.data.length !== 0 &&
               this.state.data.map((book) => (
-                <Col lg='3' md='6' sm='6' xs='6' className=" pt-3 w-auto">
+                <Col lg='3' md='3' sm='6' xs='6' className=" pt-3 w-auto">
                   <CardDeck>
                     <Card className="shadow">
                       <Link className="text-decoration-none text-color-black" to={{

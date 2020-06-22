@@ -68,38 +68,14 @@ class Sidebar extends Component {
               </Link>
               {!this.state.isAdmin && (
                 <Link to={{
-                  pathname: '/loan',
-                  state: {
-                    book: {
-                      id: this.state.id,
-                      title: this.state.title,
-                      description: this.state.description,
-                      image: this.state.image,
-                      genre: this.state.genre,
-                      author: this.state.author,
-                      release_date: this.state.release,
-                      status: this.state.status
-                    }
-                  }
+                  pathname: '/loan'
                 }}>
                   <li className="list-group-item" onClick={this.showLoans}>Loans</li>
                 </Link>
               )}
               {this.state.isAdmin && (
                 <Link to={{
-                  pathname: '/loan',
-                  state: {
-                    book: {
-                      id: this.state.id,
-                      title: this.state.title,
-                      description: this.state.description,
-                      image: this.state.image,
-                      genre: this.state.genre,
-                      author: this.state.author,
-                      release_date: this.state.release,
-                      status: this.state.status
-                    }
-                  }
+                  pathname: '/loan'
                 }}>
                   <li className="list-group-item" onClick={this.showLoans}>Loan List</li>
                 </Link>
