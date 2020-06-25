@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import {
   Row, Col, Container,
-  Button, Label, Input, Badge,
+  Button, Label, Input,
   Form, FormGroup, FormText,
   Modal, ModalHeader, ModalBody, ModalFooter
 } from 'reactstrap'
@@ -40,7 +40,7 @@ class Home extends Component {
       release_date: '',
       userData,
       data: [],
-      genreData: []
+      getGenre: ''
     }
     this.books = React.createRef()
   }
@@ -108,12 +108,12 @@ class Home extends Component {
     if (event.keyCode === 13) {
       const searchParam = Object.assign(this.state.param, qs.parse(`search=${event.target.value}`))
       this.setState({ param: searchParam })
-      this.books.current.fetchData(this.state.param)
+      this.books.current.getBook(this.state.param)
     }
   }
 
   fetchSearchbyGenre = (genre) => {
-    this.books.current.fetchDataByGenre(genre)
+    this.books.current.getBookByGenre(genre)
   }
 
   async componentDidMount() {
@@ -127,23 +127,31 @@ class Home extends Component {
     })
     const { data } = results.data
     this.setState({ data })
-    const genreUrl = `${REACT_APP_URL}genre`
-    const genreResults = await axios.get(genreUrl, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-    this.setState({ genreData: genreResults.data.data })
   }
+
+  componentDidUpdate() {
+    console.log(this.props.match)
+  }
+
+
 
   render() {
     const params = this.state.param
     return (
       <>
-        <Row className='d-flex mantap flex-row w-100 h-100 no-gutters'>
-          {this.state.showSidebar && <SideBar getUser={this.state.userData} isAdmin={this.state.isAdmin} showBook={() => this.props.history.push('/home')} loan={this.showLoans.bind(this)} hideSidebar={this.showSidebar.bind(this)} addBookModal={this.addBookModal.bind(this)} logout={this.logout.bind(this)} />}
-          <Col className='content d-flex flex-grow-1 flex-column' >
-            <Col className='navbar relative d-flex w-100 bg-white justify-content-between shadow align-items-center pl-3 px-4' >
+        <Row className='d-flex flex-row w-100 no-gutters'>
+          {this.state.showSidebar && <SideBar
+            getSideBar={this.state.showSidebar}
+            getUser={this.state.userData}
+            isAdmin={this.state.isAdmin}
+            showBook={() => this.props.history.push('/home')}
+            loan={this.showLoans.bind(this)}
+            hideSidebar={this.showSidebar.bind(this)}
+            addBookModal={this.addBookModal.bind(this)}
+            logout={this.logout.bind(this)} />
+          }
+          <Col className='content d-flex flex-column ' >
+            <Col className='shadow navbar relative d-flex w-100 bg-white justify-content-between shadow align-items-center pl-3 px-4' >
               {!this.state.showSidebar ? <div className="d-flex justify-content-end my-3 px-5">
                 <img src={Control} onClick={() => this.setState({ showSidebar: !this.state.showSidebar })} alt="control" />
               </div> : <div className='h-100 px-5'></div>}
@@ -155,7 +163,7 @@ class Home extends Component {
               </div>
 
             </Col>
-            <Col className=" p-4 " >
+            <Col className=" mantap p-2 " >
               <Container className='h-25 w-100 mb-3' fluid={true}>
                 <Carousel autoPlay={5000} animationSpeed={4000} infinite arrows centered slidesPerPage={2}
                   breakpoints={{
@@ -171,16 +179,9 @@ class Home extends Component {
                   ))}
                 </Carousel>
               </Container>
-              <Container fluid={true}>
 
-                <Col className='h2 p-5 text-center'>
-                  {this.state.genreData.map(genres => (
-                    <Badge className='mx-2 shadow' onClick={() => this.fetchSearchbyGenre(genres.genre)} color="primary" pill>{genres.genre}</Badge>
-                  ))}
-                </Col>
+              <Books ref={this.books} getGenre={this.state.getGenre} isAdmin={this.state.isAdmin} sendUrl={(param) => (this.props.history.push(param))} sendGenreUrl={(genre) => (this.props.history.push(genre))} sendParams={params} />
 
-                <Books ref={this.books} isAdmin={this.state.isAdmin} sendUrl={(param) => (this.props.history.push(param))} sendGenreUrl={(genre) => (this.props.history.push(genre))} sendParams={params} />
-              </Container>
             </Col>
           </Col>
         </Row>

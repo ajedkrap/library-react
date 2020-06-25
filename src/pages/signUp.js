@@ -5,9 +5,9 @@ import { Link } from 'react-router-dom'
 import logo from '../assets/e-Library.png'
 
 import swal from 'sweetalert'
-import qs from 'querystring'
-import axios from 'axios'
-require('dotenv').config()
+
+import { connect } from 'react-redux'
+import { signUp } from '../redux/actions/auth'
 
 
 class SignUp extends Component {
@@ -18,41 +18,41 @@ class SignUp extends Component {
       email: '',
       password: '',
       isAdmin: false,
-      data: {}
     }
   }
 
   signUp = async (event) => {
     event.preventDefault()
+    const { username, email, password, isAdmin: roles } = this.state
     const signUpData = {
-      username: this.state.username,
-      email: this.state.email,
-      password: this.state.password,
-      roles: this.state.isAdmin
+      username,
+      email,
+      password,
+      roles
     }
-    const signUp = qs.stringify(signUpData)
-    const { REACT_APP_URL } = process.env
-    const url = `${REACT_APP_URL}auth/signup`
-    await axios.post(url, signUp, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    }).then(response => {
-      console.log(response)
-      swal({
-        icon: 'success',
-        title: `Welcome, ${response.data.message} `,
-        text: `${response.data.data.email}, ${this.state.isAdmin ? 'admin' : 'user'}`
+    this.props.signUp(signUpData)
+      .then(response => {
+        swal({
+          icon: 'success',
+          title: `${this.props.auth.message} `,
+          text: `${email}, ${roles ? 'admin' : 'user'}`
+        })
+      }).catch((error) => {
+        swal({
+          icon: 'error',
+          title: 'Register Failed',
+          text: `${this.props.auth.message}`
+        })
       })
-    }).catch((error) => {
-      console.log(error)
-      swal({
-        icon: 'error',
-        title: 'Register Failed',
-        text: `${error}`
-      })
-    })
+  }
 
+  componentDidMount() {
+    if (localStorage.getItem('token')) {
+      this.props.history.push('/home')
+    }
+    if (sessionStorage.getItem('token')) {
+      this.props.history.push('/home')
+    }
   }
 
   render() {
@@ -61,8 +61,8 @@ class SignUp extends Component {
         <Row className='d-flex w-100 h-100 login no-gutters'>
           <Col md={7} className='library-cover'>
             <div className='library-overlay h-100 w-100 p-0'>
-              <div className='d-flex flex-column justify-content-around w-100 h-100 no-gutters' >
-                <div className='d-flex justify-content-start bg-white font-weight-bold logo-wrapper align-items-center w-100'>
+              <div className='d-flex flex-column justify-content-around  w-100 h-100 no-gutters' >
+                <div className='d-flex justify-content-start bg-white border-0  font-weight-bold logo-wrapper align-items-center w-100'>
                   <img className="icon" src={logo} alt="Logo" />
                 </div>
                 <h1 className='text-white display-3 font-weight-lighter ml-3 pl-4 pt-4 w-50'>"Book is a Dream that you hold in your hands"</h1>
@@ -70,8 +70,8 @@ class SignUp extends Component {
             </div>
           </Col>
           <Col md={5}>
-            <div className='d-flex login-form flex-column w-100 h-100'>
-              <div className='flex-grow-1 d-flex py-5  justify-content-center align-items-center w-100 mt-n5'>
+            <div className='d-flex border-0  login-form flex-column w-100 h-100'>
+              <div className='flex-grow-1 d-flex py-5 border-0  justify-content-center align-items-center w-100 mt-n5'>
                 <Form className=" w-75" onSubmit={this.signUp}>
                   <div className="mb-5 no-gutters">
                     <h1 className='font-weight-bolder display-4'>Sign Up</h1>
@@ -126,4 +126,11 @@ class SignUp extends Component {
   }
 }
 
-export default SignUp
+
+const mapStateToProps = (state) => ({
+  auth: state.auth
+})
+
+const mapDispatchToProps = { signUp }
+
+export default connect(mapStateToProps, mapDispatchToProps)(SignUp)

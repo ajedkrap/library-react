@@ -5,9 +5,9 @@ import { Link } from 'react-router-dom'
 import logo from '../assets/e-Library.png'
 
 import swal from 'sweetalert'
-import qs from 'querystring'
-import axios from 'axios'
-require('dotenv').config()
+
+import { connect } from 'react-redux'
+import { login } from '../redux/actions/auth'
 
 class Login extends Component {
   constructor(props) {
@@ -23,42 +23,38 @@ class Login extends Component {
 
   login = async (event) => {
     event.preventDefault()
+    const { email, password } = this.state
     const user = {
-      email: this.state.email,
-      password: this.state.password,
+      email,
+      password,
     }
-    const data = qs.stringify(user)
-    const { REACT_APP_URL } = process.env
-    const url = `${REACT_APP_URL}auth/login`
-    await axios.post(url, data, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    }).then(response => {
-      console.log(response)
-      localStorage.setItem('rememberMe', this.state.rememberMe);
-      localStorage.setItem('token', this.state.rememberMe ? JSON.stringify(response.data.data) : '');
-      sessionStorage.setItem('token', JSON.stringify(response.data.data))
-      this.props.history.push('/home')
-      swal({
-        icon: 'success',
-        title: `Welcome, ${response.data.message} `,
-        text: `${response.data.data.email}`
+    this.props.login(user)
+      .then(response => {
+        const userData = response.value.data.data
+        localStorage.setItem('rememberMe', this.state.rememberMe);
+        localStorage.setItem('token', this.state.rememberMe ? JSON.stringify(userData) : '');
+        sessionStorage.setItem('token', JSON.stringify(userData))
+        this.props.history.push('/home')
+        swal({
+          icon: 'success',
+          title: `Welcome, ${userData.username} `,
+          text: `${userData.email}`
+        })
+      }).catch((error) => {
+        swal({
+          icon: 'error',
+          title: 'Login Failed',
+          text: `${this.props.auth.message}`
+        })
       })
-    }).catch((error) => {
-      console.log(error)
-      swal({
-        icon: 'error',
-        title: 'Register Failed',
-        text: `${error}`
-      })
-    })
   }
 
 
-  componentWillMount() {
-    const rememberMe = JSON.parse(localStorage.getItem('rememberMe'))
-    if (rememberMe) {
+  componentDidMount() {
+    if (localStorage.getItem('token')) {
+      this.props.history.push('/home')
+    }
+    if (sessionStorage.getItem('token')) {
       this.props.history.push('/home')
     }
   }
@@ -70,7 +66,7 @@ class Login extends Component {
           <Col md={7} className='library-cover'>
             <div className='library-overlay h-100 w-100 p-0'>
               <div className='d-flex flex-column justify-content-around w-100 h-100 no-gutters' >
-                <div className='d-flex justify-content-start bg-white font-weight-bold logo-wrapper align-items-center w-100'>
+                <div className='d-flex justify-content-start bg-white border-0 font-weight-bold logo-wrapper align-items-center w-100'>
                   <img className="icon" src={logo} alt="Logo" />
                 </div>
                 <h1 className='text-white display-3 font-weight-lighter ml-3 pl-4 pt-4 w-50'>"Book is a Dream that you hold in your hands"</h1>
@@ -78,7 +74,7 @@ class Login extends Component {
             </div>
           </Col>
           <Col md={5}>
-            <div className='d-flex login-form flex-column w-100 h-100'>
+            <div className='d-flex border-0 login-form flex-column w-100 h-100'>
               <div className='flex-grow-1 d-flex mb-3 py-5 justify-content-center align-items-center w-100 '>
                 <Form className='w-75' onSubmit={this.login} >
                   <div className="mb-5 no-gutters">
@@ -131,4 +127,10 @@ class Login extends Component {
   }
 }
 
-export default Login
+const mapStateToProps = (state) => ({
+  auth: state.auth
+})
+
+const mapDispatchToProps = { login }
+
+export default connect(mapStateToProps, mapDispatchToProps)(Login)

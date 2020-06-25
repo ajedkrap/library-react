@@ -1,5 +1,8 @@
 import React, { Component } from 'react'
 import { BrowserRouter, Switch, Route } from 'react-router-dom'
+import { Provider } from 'react-redux'
+
+import store from './redux/store'
 
 import Login from './pages/login'
 import SignUp from './pages/signUp'
@@ -15,18 +18,20 @@ class App extends Component {
   render() {
     return (
       <>
-        <BrowserRouter>
-          <Switch>
-            <Route path='/' exact component={Login} />
-            <Route path='/signup' exact component={SignUp} />
-            <PrivateRoute path='/home' component={Home} />
-            <PrivateRoute path='/book/:id' exact component={Detail} />
-            <PrivateRoute path='/loan' exact component={Loans} />
-            <Route path='/terms' exact component={Terms} />
-            <Route path='/privacy' exact component={Privacy} />
-            <Route component={Notfound} />
-          </Switch>
-        </BrowserRouter>
+        <Provider store={store}>
+          <BrowserRouter>
+            <Switch>
+              <Route path='/' exact component={Login} />
+              <Route path='/signup' exact component={SignUp} />
+              <PrivateRoute path='/home' component={Home} />
+              <PrivateRoute path='/book/:id' exact component={Detail} />
+              <PrivateRoute path='/loan' exact component={Loans} />
+              <Route path='/terms' exact component={Terms} />
+              <Route path='/privacy' exact component={Privacy} />
+              <Route component={Notfound} />
+            </Switch>
+          </BrowserRouter>
+        </Provider>
       </>
     )
   }

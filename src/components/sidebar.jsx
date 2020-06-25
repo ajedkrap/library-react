@@ -3,6 +3,7 @@ import {
   Col, Badge
 } from 'reactstrap'
 import { Link } from 'react-router-dom'
+import { Animated } from 'react-animated-css'
 
 import Profile from '../assets/profile.jpg'
 import Control from '../assets/control.png'
@@ -47,7 +48,7 @@ class Sidebar extends Component {
 
   render() {
     return (
-      <div className='lighten fade show'>
+      <Animated animationIn="slideInLeft" animationOut="slideOutLeft" isVisible={this.props.getSideBar}>
         <Col md='12' className='sidebar position-fixed d-flex flex-column bg-white h-100 p-0 shadow'>
           <div className="d-flex justify-content-end my-3 px-3">
             <img src={Control} onClick={this.hideSidebar} alt="control" />
@@ -83,7 +84,7 @@ class Sidebar extends Component {
             </ul>
           </Col>
         </Col>
-      </div>
+      </Animated>
     )
   }
 }
