@@ -7,7 +7,7 @@ import logo from '../assets/e-Library.png'
 import swal from 'sweetalert'
 
 import { connect } from 'react-redux'
-import { login } from '../redux/actions/auth'
+import { login, clearMessage } from '../redux/actions/auth'
 
 class Login extends Component {
   constructor(props) {
@@ -29,24 +29,31 @@ class Login extends Component {
       password,
     }
     this.props.login(user)
-      .then(response => {
-        const userData = response.value.data.data
-        localStorage.setItem('rememberMe', this.state.rememberMe);
-        localStorage.setItem('token', this.state.rememberMe ? JSON.stringify(userData) : '');
-        sessionStorage.setItem('token', JSON.stringify(userData))
-        this.props.history.push('/home')
-        swal({
-          icon: 'success',
-          title: `Welcome, ${userData.username} `,
-          text: `${userData.email}`
-        })
-      }).catch((error) => {
+  }
+
+  componentDidUpdate() {
+    const { message, isError, userData } = this.props.auth
+    if (message !== null) {
+      if (isError) {
         swal({
           icon: 'error',
-          title: 'Login Failed',
-          text: `${this.props.auth.message}`
+          title: 'Register Failed',
+          text: message
         })
-      })
+      }
+      else {
+        swal({
+          icon: 'success',
+          title: message,
+          text: `Welcome, ${userData.username}`
+        })
+        localStorage.setItem('rememberMe', this.state.rememberMe);
+        localStorage.setItem('token', this.state.rememberMe ? JSON.stringify(this.props.auth.userData) : '');
+        this.props.history.push('/home')
+      }
+
+      this.props.clearMessage()
+    }
   }
 
 
@@ -131,6 +138,6 @@ const mapStateToProps = (state) => ({
   auth: state.auth
 })
 
-const mapDispatchToProps = { login }
+const mapDispatchToProps = { login, clearMessage }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login)

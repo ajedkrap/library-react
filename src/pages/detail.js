@@ -6,13 +6,17 @@ import {
   Modal, ModalHeader, ModalBody, ModalFooter,
   Navbar, NavItem, Badge
 } from 'reactstrap'
-import { Link } from 'react-router-dom'
+
+import Footer from '../components/footer'
 
 import Moment from 'react-moment'
 
 import moment from 'moment'
 import axios from 'axios'
 import swal from 'sweetalert'
+
+import { connect } from 'react-redux'
+import { addLoanedBook } from '../redux/actions/loans'
 
 class Details extends Component {
   constructor(props) {
@@ -116,87 +120,91 @@ class Details extends Component {
       })
   }
 
+  borrowBook(data) {
+    if (this.props.loans.isSelecting) {
+      this.props.addLoanedBook(data)
+    }
+    this.props.history.push('/home')
+    swal({
+      icon: 'success',
+      title: 'Book added to Loan',
+      text: `${this.book.title}`
+    })
+  }
+
   render() {
     this.book = this.props.location.state
+    const { isAdmin } = this.props.auth
     const genre = this.book.genre.split(',')
     const author = this.book.author.split(',')
     return (
       <>
-        <Row className='d-flex flex-column mantap w-100 h-100 no-gutters'>
-          <Col className=' d-flex w-100 mh-50 book-bg no-gutters shadow' style={{ backgroundImage: `url(${this.book.image})` }}>
-            <Row className="lighten w-100 no-gutters">
-              <Navbar className='d-flex justify-content-between m-2 floating w-100'>
-                <NavItem>
-                  <Button className='border rounded-circle bg-white' color="black" onClick={() => this.props.history.goBack()}>
-                    Back
-              </Button>
-                </NavItem>
-                {this.state.isAdmin && (
-                  <NavItem className='mr-2'>
-                    <Button onClick={this.editBookModal} className='h2 ml-2'>Edit</Button>
-                    <Button onClick={this.deleteBook} className='h2 ml-2'>Delete</Button>
-                  </NavItem>
-                )}
-                {!this.state.isAdmin && (
-                  <div></div>
-                )}
-              </Navbar>
-            </Row>
-          </Col>
-          <Col className="d-flex w-100 justify-content-end cover no-gutters">
-            <img className='shadow h-100' src={this.book.image} alt="cover" />
-          </Col>
-          <Col className='d-flex w-100 no-gutters '>
-            <Col className='d-flex flex-column p-4' >
-              <div className='d-flex justify-content-between' >
-                <div className='d-flex flex-row justify-content-center text-center mb-2'>
-                  {genre.map(genre => (
-                    <Badge className="badge badge-pill mr-2 badge-warning text-white">
-                      <div className="h5 p-1">
-                        {genre}
-                      </div>
-                    </Badge>
-                  ))}
-                </div>
-                <div className="text-success h5"> {this.book.status} </div>
-              </div>
-              <div className="h1"> {this.book.title} </div>
-              <div className="h4 mb-3">
-                <Moment format="DD MMMM YYYY">
-                  {this.book.release_date}
-                </Moment>
-              </div>
-              <div className='d-flex  mt-3'>
-                {author.map((author, index, array) => {
-                  return index === array.length - 1 ? <div className=" mr-1 h6 author"> {author} </div> : <div className=" mr-1 h6 author"> {author} |</div>
-                })}
-              </div>
-
-              <div className=''> {this.book.description} </div>
-            </Col>
-            {!this.state.isAdmin && (<Col className='d-flex flex-column py-5 justify-content-end align-items-center'>
-              <Link to={{
-                pathname: '/loan',
-                state: {
-                  book: {
-                    id: this.book.id,
-                    title: this.book.title,
-                    description: this.book.description,
-                    image: this.book.image,
-                    genre: this.book.genre,
-                    author: this.book.author,
-                    release_date: this.book.release_date,
-                    status: this.book.status
-                  }
-                }
-              }}>
-                <Button className='border-0 w-100 bg-warning text-white'>
-                  <h3 className='p-2'>Borrow</h3>
+        <div className='floating w-100'>
+          <Navbar className='d-flex  justify-content-between m-2 w-100'>
+            <NavItem>
+              <Button className='border rounded-circle bg-white' color="black" onClick={() => this.props.history.goBack()}>
+                Back
                 </Button>
-              </Link>
-            </Col>)}
-          </Col>
-        </Row>
+            </NavItem>
+            {isAdmin && (
+              <NavItem className='mr-2'>
+                <Button onClick={this.editBookModal} className='h2 ml-2'>Edit</Button>
+                <Button onClick={this.deleteBook} className='h2 ml-2'>Delete</Button>
+              </NavItem>
+            )}
+            {!isAdmin && (
+              <div></div>
+            )}
+          </Navbar>
+        </div>
+        <div className=' w-100 h-100 no-gutters' style={{ zIndex: 1 }}>
+          <Row className='d-flex flex-column mantap w-100 h-100 no-gutters'>
+            <Col className=' d-flex w-100 h-25 book-bg no-gutters shadow' style={{ backgroundImage: `url(${this.book.image})` }}>
+              <Row className="lighten w-100 no-gutters">
+              </Row>
+            </Col>
+            <Col className="d-flex w-100 cover  no-gutters">
+              <img className='shadow h-100' src={this.book.image} alt="cover" />
+            </Col>
+            <Row className='d-flex w-100 no-gutters book-detail pb-3'>
+              <Col lg={9} md={12} className='d-flex flex-column p-4' >
+                <div className='d-flex justify-content-between' >
+                  <div className='d-flex flex-row justify-content-center text-center mb-2'>
+                    {genre.map(genre => (
+                      <Badge className="badge badge-pill mr-2 badge-warning text-white">
+                        <div className="h5 m-0 p-1">
+                          {genre}
+                        </div>
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="text-success h5"> {this.book.status} </div>
+                </div>
+                <div className="h1"> {this.book.title} </div>
+                <div className="h4 mb-3">
+                  <Moment format="DD MMMM YYYY">
+                    {this.book.release_date}
+                  </Moment>
+                </div>
+                <div className='d-flex  mt-3'>
+                  {author.map((author, index, array) => {
+                    return index === array.length - 1 ? <div className=" mr-1 h4 author"> {author} </div> : <div className=" mr-1 h4 author"> {author} |</div>
+                  })}
+                </div>
+
+                <div className='h4 font-weight-light text-justify'> {this.book.description} </div>
+              </Col>
+              {!isAdmin && (<Col lg={3} md={12} className='d-flex flex-column py-5 justify-content-end align-items-center'>
+                <Button onClick={() => this.borrowBook(this.book)} className='border-0 w-75 bg-info text-white'>
+                  <h3 className='p-2 px-4'>Borrow</h3>
+                </Button>
+              </Col>)}
+
+              <div classname='mantap w-100 my-4'></div>
+            </Row>
+          </Row>
+          <Footer />
+        </div>
 
         <Modal isOpen={this.state.editBook}>
           <ModalHeader>
@@ -252,4 +260,11 @@ class Details extends Component {
   }
 }
 
-export default Details
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+  loans: state.loans
+})
+
+const mapDispatchToProps = { addLoanedBook }
+
+export default connect(mapStateToProps, mapDispatchToProps)(Details)

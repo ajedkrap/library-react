@@ -7,7 +7,7 @@ import logo from '../assets/e-Library.png'
 import swal from 'sweetalert'
 
 import { connect } from 'react-redux'
-import { signUp } from '../redux/actions/auth'
+import { signUp, clearMessage } from '../redux/actions/auth'
 
 
 class SignUp extends Component {
@@ -21,7 +21,7 @@ class SignUp extends Component {
     }
   }
 
-  signUp = async (event) => {
+  signUp = (event) => {
     event.preventDefault()
     const { username, email, password, isAdmin: roles } = this.state
     const signUpData = {
@@ -31,19 +31,28 @@ class SignUp extends Component {
       roles
     }
     this.props.signUp(signUpData)
-      .then(response => {
-        swal({
-          icon: 'success',
-          title: `${this.props.auth.message} `,
-          text: `${email}, ${roles ? 'admin' : 'user'}`
-        })
-      }).catch((error) => {
+  }
+
+
+  componentDidUpdate() {
+    const { message, isError } = this.props.auth
+    if (message !== null) {
+      if (isError) {
         swal({
           icon: 'error',
           title: 'Register Failed',
           text: `${this.props.auth.message}`
         })
-      })
+      }
+      else {
+        swal({
+          icon: 'success',
+          title: `${this.props.auth.message} `,
+          text: `${this.state.email}`
+        })
+      }
+      this.props.clearMessage()
+    }
   }
 
   componentDidMount() {
@@ -54,6 +63,7 @@ class SignUp extends Component {
       this.props.history.push('/home')
     }
   }
+
 
   render() {
     return (
@@ -131,6 +141,6 @@ const mapStateToProps = (state) => ({
   auth: state.auth
 })
 
-const mapDispatchToProps = { signUp }
+const mapDispatchToProps = { signUp, clearMessage }
 
 export default connect(mapStateToProps, mapDispatchToProps)(SignUp)

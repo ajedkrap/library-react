@@ -1,144 +1,137 @@
 import React, { Component } from 'react'
 import {
   Row, Col, Container,
-  Spinner, Table, Button
+  Spinner, Table, Button,
+  ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem
 } from 'reactstrap'
-
+import { Link } from 'react-router-dom'
 
 import Control from '../assets/control.png'
 import Logo from '../assets/e-Library.png'
 
 import SideBar from '../components/sidebar.jsx'
+import Footer from '../components/footer.jsx'
 
 import moment from 'moment'
 import swal from 'sweetalert'
+import qs from 'querystring'
 
-
+import { connect } from 'react-redux'
+import { deleteLoanedBook, deleteAllBook, getLoan, setLoan, returnLoan, clearMessage, clearLoan } from '../redux/actions/loans'
 
 class Loan extends Component {
 
   constructor(props) {
     super(props)
-    const userData = JSON.parse(sessionStorage.getItem('token'))
     this.state = {
-      userData,
-      isAdmin: this.getRoles(userData.roles),
-      isLoading: false,
-      isSelect: true,
-      isLoan: false,
-    }
-
-    this.book = {
-      id: '',
-      title: '',
-      description: '',
-      image: null,
-      genre: '',
-      author: '',
-      release_date: ''
+      showSidebar: false,
+      dropDownOpen: false,
+      param: qs.parse(this.props.location.search.slice(1)),
     }
   }
 
-  getRoles = (_roles) => {
-    const roles = _roles === 'admin' ? true : false
-    return roles
+  dropdownOpen = (e) => {
+    e.preventDefault()
+    this.setState({ dropdownOpen: !this.state.dropdownOpen })
   }
 
   setLoans = (e) => {
     e.preventDefault()
-    this.setState({ isLoading: !this.state.isLoading })
-
+    const { loanedBooks, message } = this.props.loans
+    const { token } = this.props.auth.userData
+    const getBooksId = loanedBooks.map(book => book.id).join(',')
     swal({
-      title: "Ready to loan?",
-      text: "Once you loan, you will not be able to select more books!",
+      title: "Loan System",
+      text: "Are you done selecting books?\n\nSelect OK to Loan, Select Cancel to add more book",
       icon: "warning",
       buttons: true,
       dangerMode: true,
     })
-      .then((willDelete) => {
-        if (willDelete) {
-          const loans = JSON.parse(localStorage.getItem('loans'))
-          const books = JSON.parse(localStorage.getItem('books'))
-          const loan = {
-            id: loans.length++,
-            username: this.state.userData.username,
-            amountOfBook: books.length,
-            loaned_date: moment().format('DD-MM-YYYY'),
-            due_date: moment().add(books.length, 'd').format('DD-MM-YYYY'),
-            return_date: '',
-            status: 'On Loan'
-          }
-          loans.push(loan)
-          localStorage.setItem('loans', JSON.stringify(loans))
-          swal({
-            icon: "success",
-            title: 'Loan Created!',
-            text: `Book is the world's window`
-          })
-          swal(
-            'Fines applied after exceeding due date'
-          )
-          swal(
-            `Make sure to return before ${loan.due_date}`
-          )
-          this.setState({ isLoading: !this.state.isLoading, isLoan: !this.state.isLoan, isSelect: !this.state.isSelect })
+      .then(onLoan => {
+        if (onLoan) {
+          this.props.setLoan({ books: getBooksId }, token)
+            .then(_ => {
+              swal({
+                title: 'Loan Recorded',
+                text: this.props.loans.message + `\n make sure to Return before ${this.props.loans.loanData.due_date}`,
+                icon: "success",
+              })
+            })
+            .catch(error => {
+              swal({
+                title: 'Loan Failed',
+                text: message,
+                icon: "error",
+              })
+            })
+          this.props.clearMessage()
         } else {
-          swal("Make sure to check the book again, and chill!");
-          this.setState({ isloading: false })
+          swal("Make sure you've get what you need");
         }
-      })
+
+      });
 
   }
 
-  return = (e) => {
+  returnLoan = (e) => {
     e.preventDefault()
-    this.setState({ isLoading: !this.state.isLoading })
+    const { loanData, message } = this.props.loans
+    const { token } = this.props.auth.userData
     swal({
-      title: "Have?",
-      text: "Once you return, you will not be able to access the book!",
+      title: "Loan System",
+      text: "Are you done selecting books?\n\nSelect OK to Return",
       icon: "warning",
       buttons: true,
       dangerMode: true,
-    }).then((willDelete) => {
-      if (willDelete) {
-        swal({
-          title: 'Book Returned!',
-          text: `yet, we'll check the whether the loan is overdue`
-        })
-        const { username } = this.state.userData
-        const loans = JSON.parse(localStorage.getItem('loans'))
-        const result = loans.filter(obj => {
-          return obj.username === username
-        })
-        result.return_date = moment().format('DD-MM-YYYY')
-        if (result.return_date > result.due_date) {
-          result.status = 'Returned'
-          swal({
-            icon: 'success',
-            title: 'You return the book on time',
-          })
-        } else {
-          result.status = 'Overdue'
-          const overdue = moment(result.return_date, 'DD-MM-YYYY').valueOf() - moment(result.due_date, 'DD-MM-YYYY').valueOf()
-          swal({
-            icon: 'warning',
-            title: `It is already ${overdue} days overdue`,
-          })
-          swal('make sure to return the book on due in future, OK? :)')
-        }
-        loans[result.id--] = result
-        localStorage.setItem('books', '[]')
-        swal('Don\'t forget to keep reading book!!')
-        this.setState({ isLoading: !this.state.isLoading, isLoan: !this.state.isLoan, isSelect: !this.state.isSelect })
-      } else {
-        swal("Make sure to check the book again, and cool!");
-        this.setState({ isloading: false })
-      }
     })
+      .then(returning => {
+        if (returning) {
+          try {
+            this.props.returnLoan({ loanId: loanData.id }, token)
+              .then(_ => {
+                if (this.props.loans.loanData.status_id === 3) {
+                  swal({
+                    title: 'On Time',
+                    text: 'Book has returned',
+                    icon: 'success'
+                  })
+                }
+              })
+              .catch(error => {
+                swal({
+                  title: 'Overdue',
+                  text: 'Fines will be applied to your account',
+                  icon: 'warning'
+                })
+              })
+          }
+          catch (error) {
+            swal({
+              title: 'Return Failed',
+              text: message,
+              icon: 'error'
+            })
+          }
+
+        } else {
+          swal("Make sure you've get what you need");
+        }
+      });
+
   }
 
   showSidebar = (state) => {
     this.setState(state)
+  }
+
+  showBook() {
+    this.setState({ showSidebar: false })
+    this.props.history.push('/home')
+  }
+
+  goToLoans() {
+    this.setState({ showSidebar: false })
+    this.props.history.push('/loan')
   }
 
   addBookModal = (state) => {
@@ -150,45 +143,47 @@ class Loan extends Component {
     this.props.history.push(uri)
   }
 
-  componentWillMount() {
-    if (localStorage.getItem('books') === null) {
-      localStorage.setItem('books', '[]')
-    }
-    if (localStorage.getItem('loans') === null) {
-      localStorage.setItem('loans', '[]')
-    }
-    if (this.props.location.state) {
-      const books = JSON.parse(localStorage.getItem('books'))
-      books.push(this.props.location.state.book)
-      localStorage.setItem('books', JSON.stringify(books))
-
-    }
-  }
-
-  componentDidUpdate() {
-    if (localStorage.getItem('books') === null) {
-      localStorage.setItem('books', '[]')
-    }
-    if (localStorage.getItem('loans') === null) {
-      localStorage.setItem('loans', '[]')
+  sortLoan = (param) => {
+    const token = JSON.parse(sessionStorage.getItem('token')).token
+    console.log(param)
+    const params = `${qs.stringify(param)}`
+    this.props.getLoan(token, params)
+    if (param) {
+      this.props.history.push(`/loan?${params}`)
     }
   }
 
   componentDidMount() {
-    delete this.props.location.state
+    const token = JSON.parse(sessionStorage.getItem('token')).token
+    this.props.getLoan(token)
+    console.log(this.props)
   }
 
 
   render() {
-    const books = JSON.parse(localStorage.getItem('books'))
-    const loans = JSON.parse(localStorage.getItem('loans'))
+    const { isAdmin, userData } = this.props.auth
+    const { loanedBooks, loans, isLoading, isSelecting, onLoan } = this.props.loans
+    const { showSidebar } = this.state
+    const inLoan = this.props.history.location.pathname.slice(1) === 'loan'
+    const params = this.state.param
+    params.sort = params.sort || 0
     return (
       <>
         <Row className='d-flex flex-row mantap w-100 h-100 no-gutters'>
-          {this.state.showSidebar && <SideBar getUser={this.state.userData} isAdmin={this.state.isAdmin} showBook={() => this.props.history.push('/home')} hideSidebar={this.showSidebar.bind(this)} addBookModal={this.addBookModal.bind(this)} logout={this.logout.bind(this)} />}
+          {showSidebar && <SideBar
+            getSideBar={showSidebar}
+            getUser={userData}
+            isAdmin={isAdmin}
+            inLoan={inLoan}
+            getLoanData={loanedBooks.length}
+            showBook={() => this.showBook()}
+            goToLoans={() => this.goToLoans()}
+            hideSidebar={this.showSidebar.bind(this)}
+            logout={this.logout.bind(this)} />}
+
           <Col className='content d-flex flex-grow-1 flex-column' >
             <Col className='navbar relative d-flex w-100 bg-white shadow align-items-center pl-3 px-4' >
-              {!this.state.showSidebar && (<div className="d-flex justify-content-end my-3 px-3">
+              {!showSidebar && (<div className="d-flex justify-content-end my-3 px-3">
                 <img src={Control} onClick={() => this.setState({ showSidebar: !this.state.showSidebar })} alt="control" />
               </div>)}
               <div className="d-flex flex-grow-1 justify-content-center">
@@ -201,16 +196,16 @@ class Loan extends Component {
             <Col className="relative p-4 flex-grow-1 overflow-auto" >
 
               <Container fluid={true}>
-                {this.state.isLoading && (
+                {isLoading && (
                   <div className='d-flex justify-content-center align-items-center'>
                     <Spinner style={{ width: '3rem', height: '3rem' }} />
                   </div>
                 )}
-                {!this.state.isLoading && !this.state.isAdmin && (
+                {!isLoading && !isAdmin && (
                   <Row className='d-flex w-100 justify-content-center h-100'>
                     <h3>Loaned Book</h3>
                     <div className='w-100' />
-                    {books.length !== 0 && (
+                    {loanedBooks.length !== 0 && (
                       <Col className='w-100'>
                         <Table striped>
                           <thead>
@@ -220,36 +215,64 @@ class Loan extends Component {
                               <th>Title</th>
                               <th>Author</th>
                               <th>Status</th>
+                              {!onLoan && <th>Delete</th>}
                             </tr>
                           </thead>
                           <tbody>
-                            {books.map((book, index) => (
+                            {loanedBooks.map((book, index,) => (
                               <tr>
                                 <th scope='row'>{index}</th>
                                 <td>{book.id}</td>
                                 <td>{book.title}</td>
                                 <td>{book.author}</td>
-                                <td>{book.status}</td>
+                                {onLoan ? <td>Booked</td> : <td>{book.status}</td>}
+                                {!onLoan && <td>
+                                  <Button onClick={() => this.props.deleteLoanedBook(index)}>
+                                    Delete
+                                  </Button>
+                                </td>}
                               </tr>
                             ))}
                           </tbody>
                         </Table>
                         <Col className='d-flex justify-content-around w-100'>
-                          {this.state.isSelect && (<Button onClick={this.setLoans} >Loans</Button>)}
-                          {this.state.isLoan && (<Button onClick={this.return}>Return</Button>)}
+                          {isSelecting && (
+                            <div>
+                              <Button onClick={(e) => this.setLoans(e)} >Loans</Button>
+                              <Button onClick={() => this.props.deleteAllBook()} >Delete</Button>
+                            </div>
+                          )}
+                          {onLoan && (<Button onClick={(e) => this.returnLoan(e)}>Return</Button>)}
                         </Col>
                       </Col>)}
-                    {books.length === 0 && (
-                      <Col className='w-100'>
-                        <p className='display-4 text-center'>No Data</p>
-                      </Col>
+                    {loanedBooks.length === 0 && (
+                      <Row className='d-flex justify-content-center align-items-center mt-3 w-100'>
+                        <div className='display-4 ml-5 m-0'>No Data.....</div>
+                        <Link className='pl-4' to='/home' >
+                          <Button color='info'>
+                            Borrow Book?
+                          </Button>
+                        </Link>
+                      </Row>
                     )}
                   </Row>
                 )}
-                {!this.state.isLoading && this.state.isAdmin && (
+                {!isLoading && isAdmin && (
                   <Row className='d-flex w-100 justify-content-center h-100'>
                     <h3>Loan list</h3>
-                    <div className='w-100' />
+                    <div className='w-100 py-2' />
+                    <Col className='w-100 py-2 d-flex justify-content-end' >
+                      <ButtonDropdown direction='bottom' isOpen={this.state.dropdownOpen} toggle={this.dropdownOpen}>
+                        <DropdownToggle caret>
+                          Sort
+                        </DropdownToggle>
+                        <DropdownMenu>
+                          <DropdownItem value='0' onClick={(e) => { this.sortLoan({ ...params, sort: parseInt(e.target.value) }) }}>Newest</DropdownItem>
+                          <DropdownItem value='1' onClick={(e) => { this.sortLoan({ ...params, sort: parseInt(e.target.value) }) }}>Oldest</DropdownItem>
+                        </DropdownMenu>
+                      </ButtonDropdown>
+                    </Col>
+                    <div className='w-100 py-2' />
                     <Col className='w-100'>
                       {loans.length !== 0 && (
                         <Col className='w-100'>
@@ -258,7 +281,6 @@ class Loan extends Component {
                               <tr>
                                 <th>#</th>
                                 <th>Username</th>
-                                <th>Amount of Book</th>
                                 <th>Loan Date</th>
                                 <th>Due Date</th>
                                 <th>Return Date</th>
@@ -266,15 +288,13 @@ class Loan extends Component {
                               </tr>
                             </thead>
                             <tbody>
-                              {loans.map(loan => (
+                              {loans.map((loan, index) => (
                                 <tr>
-                                  <th scope='row'>{loan.id}</th>
-                                  <td>{loan.id}</td>
+                                  <th scope='row'>{index}</th>
                                   <td>{loan.username}</td>
-                                  <td>{loan.amountOfBook}</td>
-                                  <td>{loan.loaned_date}</td>
-                                  <td>{loan.due_date}</td>
-                                  <td>{loan.return_date}</td>
+                                  <td>{moment(loan.loan_date).format('DD-MM-YYYY')}</td>
+                                  <td>{moment(loan.due_date).format('DD-MM-YYYY')}</td>
+                                  <td>{loan.return_date !== null ? moment(loan.return_date).format('DD-MM-YYYY') : '-'}</td>
                                   <td>{loan.status}</td>
                                 </tr>
                               ))}
@@ -284,6 +304,7 @@ class Loan extends Component {
                       {loans.length === 0 && (
                         <Col className='w-100'>
                           <p className='display-4 text-center'>No Data</p>
+
                         </Col>
                       )}
                     </Col>
@@ -294,10 +315,17 @@ class Loan extends Component {
             </Col>
           </Col>
         </Row>
-
+        <Footer />
       </>
     )
   }
 }
 
-export default Loan
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+  loans: state.loans
+})
+
+const mapDispatchToProps = { deleteLoanedBook, deleteAllBook, getLoan, setLoan, returnLoan, clearMessage, clearLoan }
+
+export default connect(mapStateToProps, mapDispatchToProps)(Loan)

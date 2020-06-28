@@ -21,3 +21,9 @@ export const login = (loginData) => {
     payload: http('users').post(url, data)
   }
 }
+
+export const clearMessage = () => {
+  return {
+    type: 'CLEAR_MESSAGE'
+  }
+}

@@ -8,6 +8,12 @@ const initialState = {
 
 const auth = (state = initialState, action) => {
   switch (action.type) {
+    case 'CLEAR_MESSAGE': {
+      return {
+        ...state,
+        message: null
+      }
+    }
     case 'SIGN_UP_PENDING': {
       return {
         ...state,
@@ -48,6 +54,7 @@ const auth = (state = initialState, action) => {
     }
     case 'LOG_IN_FULFILLED': {
       const { data } = action.payload
+      sessionStorage.setItem('token', JSON.stringify(data.data))
       return {
         ...state,
         isLoading: false,
@@ -58,9 +65,7 @@ const auth = (state = initialState, action) => {
       }
     }
     default: {
-      return {
-        ...state
-      }
+      return state
     }
   }
 

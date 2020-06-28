@@ -2,11 +2,12 @@ import React, { Component } from 'react'
 import {
   Col, Badge
 } from 'reactstrap'
-import { Link } from 'react-router-dom'
 import { Animated } from 'react-animated-css'
 
 import Profile from '../assets/profile.jpg'
 import Control from '../assets/control.png'
+
+
 
 class Sidebar extends Component {
   constructor(props) {
@@ -59,32 +60,47 @@ class Sidebar extends Component {
             </div>
             <div className="mt-1 p-3 h3 font-weight-bold text-center">{this.state.userData.username}</div>
             <div>
-              {this.state.isAdmin ? <Badge className='h4' color='success' pill >Admin</Badge> : <Badge className='h4' color='info' pill>User</Badge>}
+              {this.state.isAdmin ?
+                <Badge color='success' pill={true} >
+                  <h5 className='m-0'>Admin</h5>
+                </Badge> :
+                <Badge color='info' pill={true}>
+                  <h5 className='m-0' >User</h5>
+                </Badge>}
             </div>
           </div>
-          <Col className='h-50'>
-            {this.state.isAdmin && (<div className=' mt-3 rounded w-100 bg-white px-2' onClick={this.addBookModal}>+ Add Book</div>)}
-            <ul className="list-group pt-4 px-2">
-              <li className="list-group-item" onClick={() => this.props.showBook()}>Explore</li>
-              {!this.state.isAdmin && (
-                <Link to={{
-                  pathname: '/loan'
-                }}>
-                  <li className="list-group-item" >Loans</li>
-                </Link>
+          <Col className='h-50 p-0'>
+            {this.state.isAdmin && (
+              !this.props.inLoan && (
+                <div style={{ borderRadius: '5em' }} className='h5 font-weight-light mt-1 rounded w-100 bg-white p-2 px-4' onClick={this.addBookModal}>+ Add Book</div>
+              )
+            )}
+            <ul className="list-group pt-4 p-0">
+              <li className="list-group-item" onClick={() => this.props.showBook()}>
+                <div className='list-group-text'>Explore</div>
+              </li>
+              {!this.state.isAdmin && (this.props.getLoanData ?
+                <li className="list-group-item align-items-center" onClick={() => this.props.goToLoans()}>
+                  <div className='list-group-text'>Loans</div>
+                  <Badge className='ml-4' color='info'>{this.props.getLoanData}</Badge>
+                </li> :
+                <li className="list-group-item " onClick={() => this.props.goToLoans()}>
+                  <div className='list-group-text'>Loans</div>
+                </li>
               )}
               {this.state.isAdmin && (
-                <Link to={{
-                  pathname: '/loan'
-                }}>
-                  <li className="list-group-item" >Loan List</li>
-                </Link>
+
+                <li className="list-group-item" onClick={() => this.props.goToLoans()}>
+                  <div className='list-group-text'>Loan List</div>
+                </li>
               )}
-              <li className="list-group-item text-danger" onClick={this.logout.bind(this)}>Logout</li>
+              <li className="list-group-item text-danger" onClick={this.logout.bind(this)}>
+                <div className='list-group-text'>Logout</div>
+              </li>
             </ul>
           </Col>
         </Col>
-      </Animated>
+      </Animated >
     )
   }
 }

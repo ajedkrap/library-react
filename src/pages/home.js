@@ -14,6 +14,7 @@ import Logo from '../assets/e-Library.png'
 
 import Books from '../components/books.jsx'
 import SideBar from '../components/sidebar.jsx'
+import Footer from '../components/footer.jsx'
 
 import qs from 'querystring'
 import moment from 'moment'
@@ -21,12 +22,12 @@ import axios from 'axios'
 import swal from 'sweetalert'
 import FormData from 'form-data'
 
+import { connect } from 'react-redux'
+
 class Home extends Component {
   constructor(props) {
     super(props)
-    const userData = JSON.parse(sessionStorage.getItem('token'))
     this.state = {
-      isAdmin: this.getRoles(userData.roles),
       showSidebar: false,
       addBook: false,
       isLoading: false,
@@ -38,10 +39,9 @@ class Home extends Component {
       genre: '',
       author: '',
       release_date: '',
-      userData,
       data: [],
-      getGenre: ''
     }
+    this.genre = ''
     this.books = React.createRef()
   }
 
@@ -116,7 +116,7 @@ class Home extends Component {
     this.books.current.getBookByGenre(genre)
   }
 
-  async componentDidMount() {
+  fetchCarousel = async () => {
     const token = JSON.parse(sessionStorage.getItem('token')).token
     const { REACT_APP_URL } = process.env
     const url = `${REACT_APP_URL}books`
@@ -129,22 +129,33 @@ class Home extends Component {
     this.setState({ data })
   }
 
-  componentDidUpdate() {
-    console.log(this.props.match)
+  async componentDidMount() {
+    await this.fetchCarousel()
+      .catch(error => {
+        if (this.state.data.length < 1) {
+          localStorage.removeItem('rememberMe')
+          localStorage.removeItem('token')
+          sessionStorage.removeItem('token')
+          this.props.history.push('/')
+        }
+      })
   }
 
 
-
   render() {
-    const params = this.state.param
+    const { param, showSidebar, addBook, data } = this.state
+    const { isAdmin, userData } = this.props.auth
+    const { loanedBooks } = this.props.loans
     return (
       <>
         <Row className='d-flex flex-row w-100 no-gutters'>
-          {this.state.showSidebar && <SideBar
-            getSideBar={this.state.showSidebar}
-            getUser={this.state.userData}
-            isAdmin={this.state.isAdmin}
+          {showSidebar && <SideBar
+            getSideBar={showSidebar}
+            getUser={userData}
+            getLoanData={loanedBooks.length}
+            isAdmin={isAdmin}
             showBook={() => this.props.history.push('/home')}
+            goToLoans={() => this.props.history.push('/loan')}
             loan={this.showLoans.bind(this)}
             hideSidebar={this.showSidebar.bind(this)}
             addBookModal={this.addBookModal.bind(this)}
@@ -152,20 +163,23 @@ class Home extends Component {
           }
           <Col className='content d-flex flex-column ' >
             <Col className='shadow navbar relative d-flex w-100 bg-white justify-content-between shadow align-items-center pl-3 px-4' >
-              {!this.state.showSidebar ? <div className="d-flex justify-content-end my-3 px-5">
+              {!showSidebar ? <div className="d-flex justify-content-end my-3 px-5">
                 <img src={Control} onClick={() => this.setState({ showSidebar: !this.state.showSidebar })} alt="control" />
-              </div> : <div className='h-100 px-5'></div>}
-              <div className="nav-brand d-flex flex-grow-1 justify-content-center align-items-center">
-                <img className="icon" src={Logo} alt="Logo" />
-              </div>
-              <div className="d-flex  justify-content-center">
+              </div> : <div className='d-flex justify-content-end my-3 px-5'>
+                  <img src={Control} alt="control" />
+                </div>}
+
+              <div className="d-flex  flex-grow-1  justify-content-center">
                 <input className="input-search" onKeyDown={(event) => this.fetchSearch(event)} placeholder="Search Book" />
+              </div>
+              <div className="nav-brand d-flex justify-content-center align-items-center">
+                <img className="icon" src={Logo} alt="Logo" />
               </div>
 
             </Col>
             <Col className=" mantap p-2 " >
-              <Container className='h-25 w-100 mb-3' fluid={true}>
-                <Carousel autoPlay={5000} animationSpeed={4000} infinite arrows centered slidesPerPage={2}
+              <Container className='mh-25 w-100 mb-3 my-4 ' fluid={true}>
+                <Carousel autoPlay={6000} infinite arrows centered slidesPerPage={2}
                   breakpoints={{
                     768: {
                       slidesPerPage: 1,
@@ -174,19 +188,31 @@ class Home extends Component {
                       slidesPerPage: 1,
                     }
                   }}>
-                  {this.state.data.map(books => (
-                    <img className='p-0 my-4 shadow-lg' src={books.image} alt={books.title} />
+                  {data.map(books => (
+                    <div key={books.id} className='w-auto d-flex align-items-end '>
+                      <div style={{ zIndex: 2 }} className='h-auto w-auto text-box d-flex position-fixed flex-column text-white ml-2 pl-2 pb-3'>
+                        <div style={{ textShadow: '2px 2px 10px black', textTransform: 'uppercase', width: '24rem' }} className='h3 py-1 text-truncate'>{books.title}</div>
+                        <div style={{ textShadow: '2px 2px 10px black', textTransform: 'capitalize' }} className='h5 w-100' >{books.author[0]}</div>
+                      </div>
+                      <img style={{ zIndex: 1, opacity: 0.8 }} className='p-0 shadow' src={books.image} alt='books' />
+                    </div>
                   ))}
                 </Carousel>
               </Container>
+              <div className='w-100 py-3' />
+              <Books ref={this.books}
+                isAdmin={isAdmin}
+                getLocation={this.props.history}
+                sendUrl={(param) => this.props.history.push(param)}
+                sendGenreUrl={(genre) => this.props.history.push(genre)}
+                sendParams={param} />
 
-              <Books ref={this.books} getGenre={this.state.getGenre} isAdmin={this.state.isAdmin} sendUrl={(param) => (this.props.history.push(param))} sendGenreUrl={(genre) => (this.props.history.push(genre))} sendParams={params} />
-
+              <Footer />
             </Col>
           </Col>
         </Row>
 
-        <Modal isOpen={this.state.addBook}>
+        <Modal isOpen={addBook}>
           <ModalHeader>
             <p>Add Book</p>
             <Button color="secondary" onClick={() => this.setState({ addBook: !this.state.addBook, showSidebar: !this.state.showSidebar })}>Cancel</Button>
@@ -239,4 +265,9 @@ class Home extends Component {
   }
 }
 
-export default Home
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+  loans: state.loans,
+})
+
+export default connect(mapStateToProps, null)(Home)
