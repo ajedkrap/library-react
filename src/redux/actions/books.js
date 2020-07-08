@@ -4,11 +4,11 @@ require('dotenv').config()
 
 const { REACT_APP_URL } = process.env
 
-export const getBook = (bookData, token) => {
-  const url = `${REACT_APP_URL}auth/signup`
-  const data = qs.stringify(bookData)
+export const getBook = (token, param = null) => {
+  const params = `${qs.stringify(param)}`
+  const url = `${REACT_APP_URL}books?${params}`
   return {
     type: 'GET_BOOK',
-    payload: http('books', token).post(url, data)
+    payload: http(token).get(url)
   }
 }

@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import {
   Row, Col, Container,
   Spinner, Table, Button,
-  ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem
 } from 'reactstrap'
 import { Link } from 'react-router-dom'
 
@@ -12,12 +11,13 @@ import Logo from '../assets/e-Library.png'
 import SideBar from '../components/sidebar.jsx'
 import Footer from '../components/footer.jsx'
 
-import moment from 'moment'
 import swal from 'sweetalert'
-import qs from 'querystring'
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrashAlt, faBookReader } from '@fortawesome/free-solid-svg-icons'
 
 import { connect } from 'react-redux'
-import { deleteLoanedBook, deleteAllBook, getLoan, setLoan, returnLoan, clearMessage, clearLoan } from '../redux/actions/loans'
+import { deleteLoanedBook, deleteAllBook, setLoan, returnLoan, clearMessage, clearLoan } from '../redux/actions/loans'
 
 class Loan extends Component {
 
@@ -25,15 +25,10 @@ class Loan extends Component {
     super(props)
     this.state = {
       showSidebar: false,
-      dropDownOpen: false,
-      param: qs.parse(this.props.location.search.slice(1)),
     }
   }
 
-  dropdownOpen = (e) => {
-    e.preventDefault()
-    this.setState({ dropdownOpen: !this.state.dropdownOpen })
-  }
+
 
   setLoans = (e) => {
     e.preventDefault()
@@ -143,30 +138,13 @@ class Loan extends Component {
     this.props.history.push(uri)
   }
 
-  sortLoan = (param) => {
-    const token = JSON.parse(sessionStorage.getItem('token')).token
-    console.log(param)
-    const params = `${qs.stringify(param)}`
-    this.props.getLoan(token, params)
-    if (param) {
-      this.props.history.push(`/loan?${params}`)
-    }
-  }
 
-  componentDidMount() {
-    const token = JSON.parse(sessionStorage.getItem('token')).token
-    this.props.getLoan(token)
-    console.log(this.props)
-  }
 
 
   render() {
     const { isAdmin, userData } = this.props.auth
-    const { loanedBooks, loans, isLoading, isSelecting, onLoan } = this.props.loans
+    const { loanedBooks, isLoading, isSelecting, onLoan } = this.props.loans
     const { showSidebar } = this.state
-    const inLoan = this.props.history.location.pathname.slice(1) === 'loan'
-    const params = this.state.param
-    params.sort = params.sort || 0
     return (
       <>
         <Row className='d-flex flex-row mantap w-100 h-100 no-gutters'>
@@ -174,7 +152,6 @@ class Loan extends Component {
             getSideBar={showSidebar}
             getUser={userData}
             isAdmin={isAdmin}
-            inLoan={inLoan}
             getLoanData={loanedBooks.length}
             showBook={() => this.showBook()}
             goToLoans={() => this.goToLoans()}
@@ -183,9 +160,11 @@ class Loan extends Component {
 
           <Col className='content d-flex flex-grow-1 flex-column' >
             <Col className='navbar relative d-flex w-100 bg-white shadow align-items-center pl-3 px-4' >
-              {!showSidebar && (<div className="d-flex justify-content-end my-3 px-3">
+              {!showSidebar ? <div className="d-flex justify-content-end my-3 px-5">
                 <img src={Control} onClick={() => this.setState({ showSidebar: !this.state.showSidebar })} alt="control" />
-              </div>)}
+              </div> : <div className='d-flex justify-content-end my-3 px-5'>
+                  <img src={Control} alt="control" />
+                </div>}
               <div className="d-flex flex-grow-1 justify-content-center">
                 <div className='h-100'></div>
               </div>
@@ -207,7 +186,7 @@ class Loan extends Component {
                     <div className='w-100' />
                     {loanedBooks.length !== 0 && (
                       <Col className='w-100'>
-                        <Table striped>
+                        <Table striped responsive hover>
                           <thead>
                             <tr>
                               <th>#</th>
@@ -227,8 +206,8 @@ class Loan extends Component {
                                 <td>{book.author}</td>
                                 {onLoan ? <td>Booked</td> : <td>{book.status}</td>}
                                 {!onLoan && <td>
-                                  <Button onClick={() => this.props.deleteLoanedBook(index)}>
-                                    Delete
+                                  <Button color='danger' onClick={() => this.props.deleteLoanedBook(index)}>
+                                    <FontAwesomeIcon icon={faTrashAlt} />
                                   </Button>
                                 </td>}
                               </tr>
@@ -238,11 +217,21 @@ class Loan extends Component {
                         <Col className='d-flex justify-content-around w-100'>
                           {isSelecting && (
                             <div>
-                              <Button onClick={(e) => this.setLoans(e)} >Loans</Button>
-                              <Button onClick={() => this.props.deleteAllBook()} >Delete</Button>
+                              <Button color='info' className='mx-2' onClick={(e) => this.setLoans(e)}>
+                                <FontAwesomeIcon icon={faBookReader} />
+                                Loans
+                              </Button>
+                              <Button color='danger' className='mx-2' onClick={() => this.props.deleteAllBook()}>
+                                <FontAwesomeIcon icon={faTrashAlt} />
+                                Delete All
+                              </Button>
                             </div>
                           )}
-                          {onLoan && (<Button onClick={(e) => this.returnLoan(e)}>Return</Button>)}
+                          {onLoan && (
+                            <div>
+                              <Button color='success' onClick={(e) => this.returnLoan(e)}>Return</Button>
+                            </div>
+                          )}
                         </Col>
                       </Col>)}
                     {loanedBooks.length === 0 && (
@@ -257,60 +246,6 @@ class Loan extends Component {
                     )}
                   </Row>
                 )}
-                {!isLoading && isAdmin && (
-                  <Row className='d-flex w-100 justify-content-center h-100'>
-                    <h3>Loan list</h3>
-                    <div className='w-100 py-2' />
-                    <Col className='w-100 py-2 d-flex justify-content-end' >
-                      <ButtonDropdown direction='bottom' isOpen={this.state.dropdownOpen} toggle={this.dropdownOpen}>
-                        <DropdownToggle caret>
-                          Sort
-                        </DropdownToggle>
-                        <DropdownMenu>
-                          <DropdownItem value='0' onClick={(e) => { this.sortLoan({ ...params, sort: parseInt(e.target.value) }) }}>Newest</DropdownItem>
-                          <DropdownItem value='1' onClick={(e) => { this.sortLoan({ ...params, sort: parseInt(e.target.value) }) }}>Oldest</DropdownItem>
-                        </DropdownMenu>
-                      </ButtonDropdown>
-                    </Col>
-                    <div className='w-100 py-2' />
-                    <Col className='w-100'>
-                      {loans.length !== 0 && (
-                        <Col className='w-100'>
-                          <Table striped>
-                            <thead>
-                              <tr>
-                                <th>#</th>
-                                <th>Username</th>
-                                <th>Loan Date</th>
-                                <th>Due Date</th>
-                                <th>Return Date</th>
-                                <th>Status</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {loans.map((loan, index) => (
-                                <tr>
-                                  <th scope='row'>{index}</th>
-                                  <td>{loan.username}</td>
-                                  <td>{moment(loan.loan_date).format('DD-MM-YYYY')}</td>
-                                  <td>{moment(loan.due_date).format('DD-MM-YYYY')}</td>
-                                  <td>{loan.return_date !== null ? moment(loan.return_date).format('DD-MM-YYYY') : '-'}</td>
-                                  <td>{loan.status}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </Table>
-                        </Col>)}
-                      {loans.length === 0 && (
-                        <Col className='w-100'>
-                          <p className='display-4 text-center'>No Data</p>
-
-                        </Col>
-                      )}
-                    </Col>
-                  </Row>
-                )}
-
               </Container>
             </Col>
           </Col>
@@ -326,6 +261,6 @@ const mapStateToProps = (state) => ({
   loans: state.loans
 })
 
-const mapDispatchToProps = { deleteLoanedBook, deleteAllBook, getLoan, setLoan, returnLoan, clearMessage, clearLoan }
+const mapDispatchToProps = { deleteLoanedBook, deleteAllBook, setLoan, returnLoan, clearMessage, clearLoan }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Loan)

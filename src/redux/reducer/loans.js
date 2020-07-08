@@ -5,6 +5,7 @@ const initialState = {
   isSelecting: true,
   onLoan: false,
   message: null,
+  loanedHistory: [],
   loanedBooks: [],
   loans: [],
 }
@@ -25,10 +26,13 @@ const loans = (state = initialState, action) => {
     }
     case 'ADD_LOANED_BOOK': {
       const loanedBooks = state.loanedBooks
+      const loanedHistory = state.loanedHistory
       loanedBooks.push(action.payload)
+      loanedHistory.push(action.payload)
       return {
         ...state,
-        loanedBooks
+        loanedBooks,
+        loanedHistory
       }
     }
     case 'DELETE_LOANED_BOOK': {

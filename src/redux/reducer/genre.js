@@ -1,33 +1,33 @@
 const initialState = {
   isLoading: false,
   isError: false,
-  bookData: [],
-  pageInfo: []
+  genreData: [],
+  genres: []
 }
 
-const books = (state = initialState, action) => {
+const genre = (state = initialState, action) => {
   switch (action.type) {
-    case 'GET_BOOK_PENDING': {
+    case 'GET_GENRE_PENDING': {
       return {
         ...state,
         isLoading: true,
         isError: false
       }
     }
-    case 'GET_BOOK_REJECTED': {
+    case 'GET_GENRE_REJECTED': {
       return {
         ...state,
         isLoading: false,
         isError: true
       }
     }
-    case 'GET_BOOK_FULFILLED': {
+    case 'GET_GENRE_FULFILLED': {
       return {
         ...state,
         isLoading: false,
         isError: false,
-        bookData: action.payload.data.data,
-        pageInfo: action.payload.data.options,
+        genreData: action.payload.data.data,
+        genres: action.payload.data.data.map(genres => genres.genre)
       }
     }
     default: {
@@ -37,4 +37,5 @@ const books = (state = initialState, action) => {
     }
   }
 }
-export default books
+
+export default genre

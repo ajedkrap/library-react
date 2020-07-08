@@ -1,13 +1,15 @@
 import React, { Component } from 'react'
 import {
-  Row, Col, Container,
-  Button, Label, Input,
+  Row, Col, Container, Spinner,
+  Button, Label, Input, CustomInput,
   Form, FormGroup, FormText,
   Modal, ModalHeader, ModalBody, ModalFooter
 } from 'reactstrap'
-import Carousel from '@brainhubeu/react-carousel';
-import '@brainhubeu/react-carousel/lib/style.css';
 
+
+import Carousel from '@brainhubeu/react-carousel'
+import '@brainhubeu/react-carousel/lib/style.css'
+import Select from 'react-select/creatable'
 
 import Control from '../assets/control.png'
 import Logo from '../assets/e-Library.png'
@@ -23,6 +25,8 @@ import swal from 'sweetalert'
 import FormData from 'form-data'
 
 import { connect } from 'react-redux'
+import { getBook } from '../redux/actions/books'
+import { getGenre } from '../redux/actions/genre'
 
 class Home extends Component {
   constructor(props) {
@@ -33,22 +37,35 @@ class Home extends Component {
       isLoading: false,
       param: qs.parse(this.props.location.search.slice(1)),
       search: '',
+      genreData: [],
+    }
+    this.book = {
       image: null,
       title: '',
       description: '',
       genre: '',
       author: '',
       release_date: '',
-      data: [],
+
     }
+
     this.genre = ''
     this.books = React.createRef()
+
   }
 
-  getRoles = (_roles) => {
-    const roles = _roles === 'admin' ? true : false
-    return roles
-  }
+  // handlerChange = (e, key) => {
+  //   switch (key) {
+  //     case 'image': {
+  //       return this.book[key] = e.target.files[0]
+  //     }
+  //     case 'release_date': {
+  //       return this.book[key] = moment(e.target.value, 'YYYY-MM-DD').format('DD-MM-YYYY')
+  //     }
+  //     default:
+  //       return this.book[key] = e.target.value
+  //   }
+  // }
 
   showSidebar = (state) => {
     this.setState(state)
@@ -58,12 +75,14 @@ class Home extends Component {
     this.setState(state)
   }
 
-  showLoans = (state) => {
-    this.setState(state)
-  }
 
   addBookModal = (state) => {
     this.setState(state)
+  }
+
+  showBook = (state) => {
+    this.setState(state)
+    this.props.history.push('/home')
   }
 
   logout = (uri) => {
@@ -71,37 +90,58 @@ class Home extends Component {
     this.props.history.push(uri)
   }
 
-  addBook = async (e) => {
-    e.preventDefault()
+  handleGenreChange = (value) => {
+    if (value === null) {
+      value = []
+    }
+    const newValue = value.map(value => value.value).join(',')
+    this.book.genre = newValue
+  }
 
+  handleChange = (e, key) => {
+    if (key === 'image') {
+      this.book[key] = e.target.files[0]
+    }
+    else if (key === 'release_date') {
+      this.book[key] = moment(e.target.value, 'YYYY-MM-DD').format('DD MM YYYY')
+    }
+    else {
+      this.book[key] = e.target.value
+    }
+  }
+
+  addBook = (e) => {
+    e.preventDefault()
+    const { image, description, title, genre, author, release_date } = this.book
+    console.log(this.book)
     const data = new FormData()
-    data.append('image', this.state.image, this.state.image.name)
-    data.append('description', this.state.description)
-    data.append('title', this.state.title)
-    data.append('genre', this.state.genre)
-    data.append('author', this.state.author)
-    data.append('releaseDate', moment(this.state.release_date, 'YYYY-MM-DD').format('DD-MM-YYYY'))
-    const { REACT_APP_URL } = process.env
-    const url = `${REACT_APP_URL}books`
-    await axios.post(url, data)
-      .then(
-        response => {
-          console.log(response)
-          this.setState({ showSidebar: false, addBook: false })
-          swal({
-            icon: 'success',
-            title: 'Success',
-            text: `${response.data.data.title} added`
-          })
-        }
-      ).catch((error) => {
-        console.log(error)
-        swal({
-          icon: 'error',
-          title: 'haha!',
-          text: `${error}`
-        })
-      })
+    data.append('image', image, image.name)
+    data.append('description', description)
+    data.append('title', title)
+    data.append('genre', genre)
+    data.append('author', author)
+    data.append('releaseDate', release_date)
+    // const { REACT_APP_URL } = process.env
+    // const url = `${REACT_APP_URL}books`
+    // await axios.post(url, data)
+    //   .then(
+    //     response => {
+    //       console.log(response)
+    //       this.setState({ showSidebar: false, addBook: false })
+    //       swal({
+    //         icon: 'success',
+    //         title: 'Success',
+    //         text: `${response.data.data.title} added`
+    //       })
+    //     }
+    //   ).catch((error) => {
+    //     console.log(error)
+    //     swal({
+    //       icon: 'error',
+    //       title: 'haha!',
+    //       text: `${error}`
+    //     })
+    //   })
   }
 
   fetchSearch = (event) => {
@@ -116,36 +156,51 @@ class Home extends Component {
     this.books.current.getBookByGenre(genre)
   }
 
-  fetchCarousel = async () => {
+
+  getGenre = async () => {
     const token = JSON.parse(sessionStorage.getItem('token')).token
     const { REACT_APP_URL } = process.env
-    const url = `${REACT_APP_URL}books`
-    const results = await axios.get(url, {
+    const genreUrl = `${REACT_APP_URL}genre`
+    const genreResults = await axios.get(genreUrl, {
       headers: {
         Authorization: `Bearer ${token}`
       }
     })
-    const { data } = results.data
-    this.setState({ data })
+    const genreData = genreResults.data.data.map(genres => genres.genre)
+    this.setState({ genreData })
   }
 
-  async componentDidMount() {
-    await this.fetchCarousel()
-      .catch(error => {
-        if (this.state.data.length < 1) {
-          localStorage.removeItem('rememberMe')
-          localStorage.removeItem('token')
-          sessionStorage.removeItem('token')
-          this.props.history.push('/')
-        }
-      })
+  componentDidMount() {
+    const token = JSON.parse(sessionStorage.getItem('token')).token
+    this.props.getGenre(token)
+    this.props.getBook(token)
+    // .catch(error => {
+    //   if (this.state.data.length < 1) {
+    //     localStorage.removeItem('rememberMe')
+    //     localStorage.removeItem('token')
+    //     sessionStorage.removeItem('token')
+    //     this.props.history.push('/')
+    //   }
+    // })
+
   }
 
+  componentDidUpdate() {
+    console.log(this.props)
+    console.log(this.state)
+  }
 
   render() {
-    const { param, showSidebar, addBook, data } = this.state
+
+    const { param, showSidebar, addBook, } = this.state
     const { isAdmin, userData } = this.props.auth
     const { loanedBooks } = this.props.loans
+    const { genres } = this.props.genre
+    const { bookData } = this.props.books
+    let getGenres = []
+    if (typeof genres !== 'undefined') {
+      getGenres = genres.map(genre => ({ value: genre, label: genre }))
+    }
     return (
       <>
         <Row className='d-flex flex-row w-100 no-gutters'>
@@ -154,9 +209,9 @@ class Home extends Component {
             getUser={userData}
             getLoanData={loanedBooks.length}
             isAdmin={isAdmin}
-            showBook={() => this.props.history.push('/home')}
+            showBook={this.showBook.bind(this)}
             goToLoans={() => this.props.history.push('/loan')}
-            loan={this.showLoans.bind(this)}
+            goToSetting={() => this.props.history.push('/setting')}
             hideSidebar={this.showSidebar.bind(this)}
             addBookModal={this.addBookModal.bind(this)}
             logout={this.logout.bind(this)} />
@@ -179,25 +234,33 @@ class Home extends Component {
             </Col>
             <Col className=" mantap p-2 " >
               <Container className='mh-25 w-100 mb-3 my-4 ' fluid={true}>
-                <Carousel autoPlay={6000} infinite arrows centered slidesPerPage={2}
-                  breakpoints={{
-                    768: {
-                      slidesPerPage: 1,
-                    },
-                    1024: {
-                      slidesPerPage: 1,
-                    }
-                  }}>
-                  {data.map(books => (
-                    <div key={books.id} className='w-auto d-flex align-items-end '>
-                      <div style={{ zIndex: 2 }} className='h-auto w-auto text-box d-flex position-fixed flex-column text-white ml-2 pl-2 pb-3'>
-                        <div style={{ textShadow: '2px 2px 10px black', textTransform: 'uppercase', width: '24rem' }} className='h3 py-1 text-truncate'>{books.title}</div>
-                        <div style={{ textShadow: '2px 2px 10px black', textTransform: 'capitalize' }} className='h5 w-100' >{books.author[0]}</div>
+                {typeof bookData === 'undefined' &&
+                  <div className='w-100 d-flex justify-content-center'>
+                    <Spinner color="primary" />
+                  </div>
+                }
+                {typeof bookData !== 'undefined' && (
+                  <Carousel autoPlay={6000} infinite arrows centered slidesPerPage={2}
+                    breakpoints={{
+                      768: {
+                        slidesPerPage: 1,
+                      },
+                      1024: {
+                        slidesPerPage: 1,
+                      }
+                    }}>
+
+                    {bookData.length !== 0 && bookData.map(books => (
+                      <div key={books.id} className='w-auto d-flex align-items-end '>
+                        <div style={{ zIndex: 2 }} className='h-auto w-auto text-box d-flex position-fixed flex-column text-white ml-2 pl-2 pb-3'>
+                          <div style={{ textShadow: '2px 2px 10px black', textTransform: 'uppercase', width: '24rem' }} className='h3 py-1 text-truncate'>{books.title}</div>
+                          <div style={{ textShadow: '2px 2px 10px black', textTransform: 'capitalize' }} className='h5 w-100' >{books.author[0]}</div>
+                        </div>
+                        <img style={{ zIndex: 1, opacity: 0.8 }} className='p-0 shadow' src={books.image} alt='books' />
                       </div>
-                      <img style={{ zIndex: 1, opacity: 0.8 }} className='p-0 shadow' src={books.image} alt='books' />
-                    </div>
-                  ))}
-                </Carousel>
+                    ))}
+
+                  </Carousel>)}
               </Container>
               <div className='w-100 py-3' />
               <Books ref={this.books}
@@ -221,25 +284,25 @@ class Home extends Component {
             <ModalBody>
               <FormGroup className='d-flex flex-row no-gutters'>
                 <Label md="3" for="title">Title</Label>
-                <Input md="9" type="text" onChange={(event) => { this.setState({ title: event.target.value }) }} />
+                <Input md="9" type="text" onChange={(e) => this.handleChange(e, 'title')} />
               </FormGroup>
               <FormGroup className='d-flex flex-row no-gutters'>
                 <Label md="3" for="description">Description</Label>
-                <Input md='9' type="text" onChange={(event) => { this.setState({ description: event.target.value }) }} />
+                <Input col='5' md='9' type="textarea" onChange={(e) => this.handleChange(e, 'description')} />
               </FormGroup>
               <FormGroup className='d-flex flex-row no-gutters'>
                 <Label md="3" for="genre">Genre</Label>
-                <div md="9" className='d-flex flex-column'>
-                  <Input type="text" onChange={(event) => { this.setState({ genre: event.target.value }) }} />
-                  <FormText>
-                    If multiple, separated by comma. (e.g. Action, Fantasy, Novel)
-                  </FormText>
-                </div>
+                <Select
+                  md='9'
+                  className='w-100'
+                  isMulti
+                  options={getGenres}
+                  onChange={this.handleGenreChange} />
               </FormGroup>
               <FormGroup className='d-flex flex-row no-gutters'>
                 <Label md="3" for="author">Author</Label>
                 <div md="9" className='d-flex flex-column'>
-                  <Input type="text" onChange={(event) => { this.setState({ author: event.target.value }) }} />
+                  <Input type="text" onChange={(e) => this.handleChange(e, 'author')} />
                   <FormText>
                     If multiple, separated by comma. (e.g. jk rowling, pidi baiq, raditya dika)
                   </FormText>
@@ -247,15 +310,16 @@ class Home extends Component {
               </FormGroup>
               <FormGroup className='d-flex flex-row no-gutters'>
                 <Label md="3" for="release-date">Release Date</Label>
-                <Input md="9" type="date" onChange={(event) => { this.setState({ release_date: event.target.value }) }} />
+                <Input md="9" type="date" onChange={(e) => this.handleChange(e, 'release_date')} />
               </FormGroup>
               <FormGroup className='d-flex flex-row no-gutters'>
                 <Label md="3" for="image">Image</Label>
-                <Input md="9" type="file" accept="image/png, image/jpeg, image/jpg, image/gif" onChange={(event) => { this.setState({ image: event.target.files[0] }) }} />
+                <CustomInput Input md="9" type="file" accept="image/png, image/jpeg, image/jpg, image/gif"
+                  onChange={(e) => this.handleChange(e, 'image')} />
               </FormGroup>
             </ModalBody>
             <ModalFooter>
-              <Button type='submit' onClick={this.addBook} color="secondary">Submit</Button>
+              <Button type='submit' color='info' onClick={this.addBook} >Submit</Button>
             </ModalFooter>
           </Form>
         </Modal>
@@ -268,6 +332,10 @@ class Home extends Component {
 const mapStateToProps = (state) => ({
   auth: state.auth,
   loans: state.loans,
+  genre: state.genre,
+  books: state.books
 })
 
-export default connect(mapStateToProps, null)(Home)
+const mapDispatchToProps = { getBook, getGenre }
+
+export default connect(mapStateToProps, mapDispatchToProps)(Home)
