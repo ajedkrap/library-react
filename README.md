@@ -1,6 +1,6 @@
-<h1 align="center"> 
+<h1 align="center" style="align-items: center"> 
 <img src="https://raw.githubusercontent.com/ajedkrap/library-react/master/logo.png" alt="logo">  with 
-<img src="https://cdn4.iconfinder.com/data/icons/logos-3/600/React.js_logo-512.png" alt="react">
+<img  height="200" src="https://cdn4.iconfinder.com/data/icons/logos-3/600/React.js_logo-512.png" alt="react">
 </h1>
 
 
