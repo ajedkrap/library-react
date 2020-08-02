@@ -1,10 +1,10 @@
-<h1 align="center" style="align-items:"center";"> 
-<img src="https://raw.githubusercontent.com/ajedkrap/library-react/master/logo.png" alt="logo">  with 
+<h1 align="center" style="display:"flex";align-items:"center";"> 
+<img height="100" src="https://raw.githubusercontent.com/ajedkrap/library-react/master/logo.png" alt="logo">  with 
 <img  height="100" src="https://cdn4.iconfinder.com/data/icons/logos-3/600/React.js_logo-512.png" alt="react">
 </h1>
 
 
-# Description
+## Description
 [![React JS](https://img.shields.io/badge/react-v16.13.1-blue)](https://github.com/facebook/react)
 e-Library is an online library platform with a web-based application as a medium. The basic purpose of this application is to provide a forum for readers to borrow books without going to the library. Created with React Js for Front-End, and Express Js for Back-end
 
