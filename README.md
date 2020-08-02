@@ -6,7 +6,7 @@
 
 
 ## Description
-[![React JS](https://img.shields.io/badge/react-v16.13.1-blue)](https://github.com/facebook/react)
+[![React JS](https://img.shields.io/badge/React-v16.13.1-blue)](https://github.com/facebook/react)
 e-Library is an online library platform with a web-based application as a medium. The basic purpose of this application is to provide a forum for readers to borrow books without going to the library. Created with React Js for Front-End, and Express Js for Back-end
 
 <p align='justify'></p>
