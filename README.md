@@ -4,6 +4,12 @@
 <img height="70" src="https://cdn4.iconfinder.com/data/icons/logos-3/600/React.js_logo-512.png" alt="react">
 </h1>
 
+## Screenshot
+<br/>
+<p align="center">
+   <img height="720" src="https://raw.githubusercontent.com/ajedkrap/library-react/master/banner.png" alt="banner"/>
+</p>  
+<br/>
 
 ## Description
 [![React JS](https://img.shields.io/badge/React-v16.13.1-blue)](https://github.com/facebook/react)
