@@ -7,7 +7,7 @@
 ## Screenshot
 <br/>
 <p align="center">
-   <img height="720" src="https://raw.githubusercontent.com/ajedkrap/library-react/master/banner.png" alt="banner"/>
+   <img height="640" src="https://raw.githubusercontent.com/ajedkrap/library-react/master/banner.png" alt="banner"/>
 </p>  
 <br/>
 
